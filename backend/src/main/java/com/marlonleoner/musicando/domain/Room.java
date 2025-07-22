@@ -9,25 +9,23 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Data
-@Builder
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @Entity
 @Table(name = "tb_room")
-public class Room {
-
-    @Id
-    @Column(updatable = false, nullable = false)
-    private final String id;
+public class Room extends BaseEntity {
 
     @Column(updatable = false, nullable = false, unique = true, length = 6)
     private final String code;
@@ -35,15 +33,9 @@ public class Room {
     @Enumerated(EnumType.STRING)
     private RoomStatus status;
 
-    @Column(nullable = true)
-    private String playlist;
-
-    @Column(nullable = true)
-    private int count;
-
-    @Column(nullable = true)
-    private int duration;
-
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players;
+
+    @OneToOne(mappedBy = "room", cascade = CascadeType.ALL)
+    private Game game;
 }
