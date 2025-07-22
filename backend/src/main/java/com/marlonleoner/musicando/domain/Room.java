@@ -1,41 +1,48 @@
 package com.marlonleoner.musicando.domain;
 
 import java.util.List;
-import java.util.UUID;
+
+import com.marlonleoner.musicando.domain.enums.RoomStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 @AllArgsConstructor
 @Data
+@Builder
 @Entity
 @Table(name = "tb_room")
 public class Room {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false)
-    private UUID id;
+    private final String id;
 
-    private String code;
+    @Column(updatable = false, nullable = false, unique = true, length = 6)
+    private final String code;
 
-    private String playlistName;
+    @Enumerated(EnumType.STRING)
+    private RoomStatus status;
 
-    private int songCount;
+    @Column(nullable = true)
+    private String playlist;
 
-    private int songDuration;
+    @Column(nullable = true)
+    private int count;
 
-    private boolean gameStarted;
+    @Column(nullable = true)
+    private int duration;
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players;
