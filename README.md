@@ -1,1 +1,3 @@
-# musicando
+# Musicando
+
+This project, "Musicando", is a software application designed to help users manage, play, or interact with music in some way. The name suggests a focus on music-related features, though the specific functionality will depend on the project's implementation. This README will provide information about the project's purpose, setup instructions, and usage details as development progresses.
