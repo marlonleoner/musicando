@@ -8,10 +8,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.marlonleoner.musicando.aggregation.RoomAggregation;
+import com.marlonleoner.musicando.domain.dto.JoinRoomDTO;
 import com.marlonleoner.musicando.domain.dto.RoomDTO;
+import com.marlonleoner.musicando.domain.exception.BaseException;
+import com.marlonleoner.musicando.domain.request.JoinRoomRequest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/room")
@@ -28,5 +32,10 @@ public class RoomController {
     @PostMapping()
     public ResponseEntity<RoomDTO> createroom() {
         return ResponseEntity.ok(aggregation.createRoom());
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity<JoinRoomDTO> joinRoom(@RequestBody JoinRoomRequest params) throws BaseException {
+        return ResponseEntity.ok(aggregation.joinRoom(params));
     }
 }
