@@ -32,6 +32,9 @@ public class Room extends BaseEntity {
     @Column(updatable = false, nullable = false, unique = true, length = 6)
     private final String code;
 
+    @Column(updatable = false, nullable = false)
+    private final String secret;
+
     @Enumerated(EnumType.STRING)
     private RoomStatus status;
 

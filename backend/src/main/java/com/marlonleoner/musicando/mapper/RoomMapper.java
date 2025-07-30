@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 public class RoomMapper {
 
     public static RoomDTO toDTO(Room room) {
-        RoomDTO dto = new RoomDTO(room.getId().toString(), room.getCode());
-
-        return dto;
+        return new RoomDTO(room.getId().toString(), room.getCode(), room.getSecret());
     }
 }

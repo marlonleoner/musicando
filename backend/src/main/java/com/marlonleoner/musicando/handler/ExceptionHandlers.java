@@ -1,4 +1,4 @@
-package com.marlonleoner.musicando.config;
+package com.marlonleoner.musicando.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;

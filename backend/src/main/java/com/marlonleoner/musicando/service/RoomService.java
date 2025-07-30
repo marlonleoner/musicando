@@ -4,14 +4,13 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-
 import org.springframework.stereotype.Service;
 
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.repository.RoomRepository;
+import com.marlonleoner.musicando.util.UUID7;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,8 +43,9 @@ public class RoomService {
         String code = generateUniqueRoomCode();
 
         Room room = Room.builder()
-                .id(UUID.randomUUID().toString())
+                .id(UUID7.generate())
                 .code(code)
+                .secret(UUID7.generate())
                 .status(RoomStatus.WAITING)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

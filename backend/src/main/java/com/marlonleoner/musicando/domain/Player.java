@@ -1,5 +1,6 @@
 package com.marlonleoner.musicando.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -21,7 +22,8 @@ public class Player extends BaseEntity {
 
     private String sessionId;
 
-    private String secret;
+    @Column(updatable = false, nullable = false)
+    private final String secret;
 
     private String nickname;
 
