@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  backend:
+    container_name: musicando-backend
+    build:
+      context: backend
+    tty: true
+    volumes:
+      - ./database:/musicando-backend/database
+    environment:
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+    ports:
+      - "8080:8080"
+    links:
+      - redis
+    depends_on:
+      - redis
+    networks:
+      - musicando-network
+
+  redis:
+    container_name: musicando-redis
+    image: redis:alpine
+    tty: true
+    restart: always
+    command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+    environment:
+      - REDIS_PASSWORD
+    ports:
+      - "6379:6379"
+    networks:
+      - musicando-network
+
+networks:
+  musicando-network:
+    driver: bridge
