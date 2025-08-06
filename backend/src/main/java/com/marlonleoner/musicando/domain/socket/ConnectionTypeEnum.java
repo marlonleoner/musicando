@@ -32,30 +32,4 @@ public enum ConnectionTypeEnum {
                 .findFirst()
                 .orElse(null);
     }
-
-    // HOST_CONNECTION("host/connection", SocketHandler::onHostConnection),
-    // HOST_DISCONNECT("host/disconnect", SocketHandler::onHostDisconnect),
-    // PLAYER_CONNECTION("player/connection", SocketHandler::onPlayerConnection),
-    // PLAYER_DISCONNECT("player/disconnect", SocketHandler::onPlayerDisconnect);
-
-    // private final String role;
-
-    // private final Consumer<SocketAttributes> action;
-
-    // ConnectionTypeEnum(String role, Consumer<SocketAttributes> action) {
-    // this.role = role;
-    // this.action = action;
-    // }
-
-    // public void execute(SocketAttributes payload) {
-    // action.accept(payload);
-    // }
-
-    // public static ConnectionTypeEnum get(String value) {
-    // return Stream.of(values())
-    // .filter(type -> type.getRole().equals(value))
-    // .findFirst()
-    // .orElseThrow(() -> new IllegalArgumentException("Invalid connection type: " +
-    // value));
-    // }
 }
