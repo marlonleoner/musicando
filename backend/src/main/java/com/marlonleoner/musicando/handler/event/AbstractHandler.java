@@ -19,7 +19,7 @@ public abstract class AbstractHandler {
         try {
             handle(payload);
         } catch (Exception ex) {
-            log.error("An error occurred while processing event in game - reason {}", ex.getMessage());
+            log.error("An error occurred while processing event in room - reason {}", ex.getMessage());
         }
     }
 }

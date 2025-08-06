@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum GameStatus {
+public enum MatchStatus {
 
     WAITING(1, "Waiting"),
     IN_PROGRESS(2, "In Progress"),

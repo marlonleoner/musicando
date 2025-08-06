@@ -2,7 +2,7 @@ package com.marlonleoner.musicando.domain;
 
 import java.util.Date;
 
-import com.marlonleoner.musicando.domain.enums.GameStatus;
+import com.marlonleoner.musicando.domain.enums.MatchStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,11 +27,11 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true, exclude = "room")
 @SuperBuilder
 @Entity
-@Table(name = "tb_game")
-public class Game extends BaseEntity {
+@Table(name = "tb_match")
+public class Match extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
-    private GameStatus status;
+    private MatchStatus status;
 
     @Column(nullable = true)
     private String playlist;

@@ -27,8 +27,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = "game")
-@EqualsAndHashCode(callSuper = true, exclude = "game")
+@ToString(exclude = "match")
+@EqualsAndHashCode(callSuper = true, exclude = "match")
 @SuperBuilder
 @Entity
 @Table(name = "tb_room")
@@ -47,11 +47,11 @@ public class Room extends BaseEntity {
     private List<Player> players;
 
     @OneToOne
-    @JoinColumn(name = "current_game_id")
-    private Game game;
+    @JoinColumn(name = "current_match_id")
+    private Match match;
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Game> games;
+    private List<Match> matchs;
 
     private boolean isStatus(RoomStatus other) {
         return Objects.nonNull(status) && status.equals(other);
