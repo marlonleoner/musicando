@@ -1,7 +1,7 @@
 package com.marlonleoner.musicando.service;
 
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -40,6 +40,8 @@ public class RoomService {
     }
 
     public Room createAndSave() {
+        Date now = new Date();
+
         String code = generateUniqueRoomCode();
 
         Room room = Room.builder()
@@ -47,8 +49,8 @@ public class RoomService {
                 .code(code)
                 .secret(UUID7.generate())
                 .status(RoomStatus.WAITING)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
         return repository.save(room);

@@ -11,19 +11,24 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@ToString(exclude = "game")
+@EqualsAndHashCode(callSuper = true, exclude = "game")
 @SuperBuilder
 @Entity
 @Table(name = "tb_room")
@@ -41,8 +46,12 @@ public class Room extends BaseEntity {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Player> players;
 
-    @OneToOne(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne
+    @JoinColumn(name = "current_game_id")
     private Game game;
+
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Game> games;
 
     private boolean isStatus(RoomStatus other) {
         return Objects.nonNull(status) && status.equals(other);
@@ -54,5 +63,9 @@ public class Room extends BaseEntity {
 
     public boolean isFinished() {
         return isStatus(RoomStatus.FINISHED);
+    }
+
+    public boolean validateSecret(String other) {
+        return Objects.nonNull(this.secret) && this.secret.equals(other);
     }
 }

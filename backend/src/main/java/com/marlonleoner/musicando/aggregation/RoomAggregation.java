@@ -33,6 +33,22 @@ public class RoomAggregation {
         return RoomMapper.toDTO(roomService.createAndSave());
     }
 
+    /**
+     * Permite que um jogador se junte a uma sala existente.
+     * 
+     * O método verifica se a sala existe e se não está finalizada.
+     * Se a sala não existir, uma exceção será lançada.
+     * Se a sala estiver finalizada, uma RoomAlreadyFinishedException será lançada.
+     * Se todas as verificações forem bem-sucedidas, um novo jogador é criado e
+     * adicionado à sala.
+     * 
+     * @param params Os parâmetros de entrada contendo o código da sala e o apelido
+     *               do jogador
+     * @return Um objeto DTO contendo o ID do jogador, sua chave secreta e o código
+     *         da sala
+     * @throws BaseException                se ocorrer um erro durante o processo
+     * @throws RoomAlreadyFinishedException se a sala já estiver finalizada
+     */
     public JoinRoomDTO joinRoom(JoinRoomRequest params) throws BaseException {
         Room room = roomService.getOrException(params.code());
 

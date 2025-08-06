@@ -1,6 +1,6 @@
 package com.marlonleoner.musicando.service;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +22,15 @@ public class PlayerService {
     }
 
     public Player createAndSave(String nickname, Room room) {
+        Date now = new Date();
+
         Player player = Player.builder()
                 .id(UUID7.generate())
                 .nickname(nickname)
                 .room(room)
                 .secret(UUID7.generate())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
         return repository.save(player);

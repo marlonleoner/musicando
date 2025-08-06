@@ -1,6 +1,6 @@
 package com.marlonleoner.musicando.domain;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
@@ -21,9 +21,9 @@ public abstract class BaseEntity {
     protected String id;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @Setter
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 }
