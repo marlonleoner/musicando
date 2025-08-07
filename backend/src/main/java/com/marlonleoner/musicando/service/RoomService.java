@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.marlonleoner.musicando.domain.Room;
@@ -23,6 +24,11 @@ public class RoomService {
 
     private final RoomRepository repository;
 
+    private Room save(Room room) {
+        room.setUpdatedAt(new Date());
+        return repository.save(room);
+    }
+
     public List<Room> findAll() {
         return repository.findAll();
     }
@@ -40,8 +46,6 @@ public class RoomService {
     }
 
     public Room createAndSave() {
-        Date now = new Date();
-
         String code = generateUniqueRoomCode();
 
         Room room = Room.builder()
@@ -49,11 +53,10 @@ public class RoomService {
                 .code(code)
                 .secret(UUID7.generate())
                 .status(RoomStatus.WAITING)
-                .createdAt(now)
-                .updatedAt(now)
+                .createdAt(new Date())
                 .build();
 
-        return repository.save(room);
+        return save(room);
     }
 
     private String generateUniqueRoomCode() {
@@ -73,5 +76,19 @@ public class RoomService {
         }
 
         return sb.toString();
+    }
+
+    public void onConnect(Room room) {
+        room.setConnected(true);
+        room.setStatus(RoomStatus.WAITING);
+
+        save(room);
+    }
+
+    public void onDisconnect(Room room) {
+        room.setConnected(false);
+        room.setStatus(RoomStatus.PAUSED);
+
+        save(room);
     }
 }

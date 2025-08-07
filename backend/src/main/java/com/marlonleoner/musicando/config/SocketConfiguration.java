@@ -27,6 +27,7 @@ public class SocketConfiguration implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/queue");
+        config.setUserDestinationPrefix("/user");
         config.setApplicationDestinationPrefixes("/musicando");
     }
 

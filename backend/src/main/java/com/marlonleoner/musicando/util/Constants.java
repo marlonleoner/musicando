@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 public class Constants {
 
     public static final String REDIS_SESSIONS = "@MUSICANDO:SESSIONS:%s";
+    public static final String REDIS_HOST_CONNECTED = "@MUSICANDO:ROOMS:%s:HOST-CONNECTED";
 
     public static final String EVENTS_EXCHANGER = "MUSICANDO-EXCHANGER";
     public static final String EVENTS_ROOM_QUEUE = "MUSICANDO-EVENTS-%s";
+
+    public static final String EVENT_UDPATE_ROOM = "/topic/room/%s";
 }

@@ -1,6 +1,7 @@
 package com.marlonleoner.musicando.domain;
 
 import java.util.Date;
+import java.util.Objects;
 
 import com.marlonleoner.musicando.domain.enums.MatchStatus;
 
@@ -47,4 +48,16 @@ public class Match extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;
+
+    private boolean isStatus(MatchStatus other) {
+        return Objects.nonNull(status) && status.equals(other);
+    }
+
+    public boolean isPaused() {
+        return isStatus(MatchStatus.PAUSED);
+    }
+
+    public boolean isInProgress() {
+        return isStatus(MatchStatus.IN_PROGRESS);
+    }
 }

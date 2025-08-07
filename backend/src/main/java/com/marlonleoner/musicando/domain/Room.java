@@ -27,8 +27,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = "match")
-@EqualsAndHashCode(callSuper = true, exclude = "match")
+@ToString(exclude = "currentMatch")
+@EqualsAndHashCode(callSuper = true, exclude = "currentMatch")
 @SuperBuilder
 @Entity
 @Table(name = "tb_room")
@@ -43,14 +43,16 @@ public class Room extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RoomStatus status;
 
-    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private boolean connected;
+
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Player> players;
 
     @OneToOne
     @JoinColumn(name = "current_match_id")
-    private Match match;
+    private Match currentMatch;
 
-    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Match> matchs;
 
     private boolean isStatus(RoomStatus other) {
@@ -65,7 +67,10 @@ public class Room extends BaseEntity {
         return isStatus(RoomStatus.FINISHED);
     }
 
-    public boolean validateSecret(String other) {
-        return Objects.nonNull(this.secret) && this.secret.equals(other);
+    public boolean validateSecrets(String id, String secret) {
+        return Objects.nonNull(this.id) &&
+                Objects.nonNull(this.secret) &&
+                this.id.equals(id) &&
+                this.secret.equals(secret);
     }
 }

@@ -7,9 +7,11 @@ import lombok.Getter;
 @Getter
 public enum RoomStatus {
 
-    WAITING(1, "Waiting"),
-    IN_PROGRESS(2, "In Progress"),
-    FINISHED(3, "Finished");
+    WAITING(1, "Waiting for players"),
+    IN_PROGRESS(2, "Match in progress"),
+    PAUSED(3, "Match paused"),
+    FINISHED(4, "Match finished"),
+    CLOSED(5, "Room closed");
 
     private final Integer id;
 

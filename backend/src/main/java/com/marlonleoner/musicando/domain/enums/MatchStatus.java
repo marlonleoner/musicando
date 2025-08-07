@@ -8,8 +8,9 @@ import lombok.Getter;
 public enum MatchStatus {
 
     WAITING(1, "Waiting"),
-    IN_PROGRESS(2, "In Progress"),
-    FINISHED(3, "Finished");
+    PAUSED(2, "Paused"),
+    IN_PROGRESS(3, "In Progress"),
+    FINISHED(4, "Finished");
 
     private final Integer id;
 
