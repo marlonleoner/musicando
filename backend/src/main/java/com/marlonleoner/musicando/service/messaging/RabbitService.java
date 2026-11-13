@@ -1,5 +1,10 @@
-package com.marlonleoner.musicando.service;
+package com.marlonleoner.musicando.service.messaging;
 
+import com.marlonleoner.musicando.domain.event.Event;
+import com.marlonleoner.musicando.util.Constants;
+import com.marlonleoner.musicando.util.LogSanitizer;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -7,12 +12,6 @@ import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-
-import com.marlonleoner.musicando.domain.event.Event;
-import com.marlonleoner.musicando.util.Constants;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -37,7 +36,7 @@ public class RabbitService {
         amqpAdmin.declareQueue(queue);
         amqpAdmin.declareBinding(binding);
 
-        log.info("Queue and binding declared for room '{}'", code);
+        log.info("Queue and binding declared for room '{}'", LogSanitizer.sanitize(code));
     }
 
     public void sendMessage(String queue, Object object) {

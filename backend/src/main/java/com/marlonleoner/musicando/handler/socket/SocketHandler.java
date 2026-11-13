@@ -1,7 +1,17 @@
 package com.marlonleoner.musicando.handler.socket;
 
-import java.util.Objects;
-
+import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.event.BroadcastEnum;
+import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
+import com.marlonleoner.musicando.domain.socket.ConnectionTypeEnum;
+import com.marlonleoner.musicando.domain.socket.SocketAttributes;
+import com.marlonleoner.musicando.service.cache.RedisService;
+import com.marlonleoner.musicando.service.room.RoomService;
+import com.marlonleoner.musicando.service.socket.SocketService;
+import com.marlonleoner.musicando.util.Constants;
+import com.marlonleoner.musicando.util.LogSanitizer;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -10,18 +20,7 @@ import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
-import com.marlonleoner.musicando.domain.Room;
-import com.marlonleoner.musicando.domain.event.BroadcastEnum;
-import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
-import com.marlonleoner.musicando.domain.socket.ConnectionTypeEnum;
-import com.marlonleoner.musicando.domain.socket.SocketAttributes;
-import com.marlonleoner.musicando.service.RedisService;
-import com.marlonleoner.musicando.service.RoomService;
-import com.marlonleoner.musicando.service.SocketService;
-import com.marlonleoner.musicando.util.Constants;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -42,7 +41,7 @@ public class SocketHandler {
         SocketAttributes attributes = SocketAttributes.fromHeaders(accessor);
 
         String key = getSessionRedisKey(attributes.sessionId());
-        redisService.set(key, attributes, 3600);
+        redisService.set(key, attributes, Constants.SESSION_TTL_SECONDS);
 
         execute(attributes, true);
     }
@@ -68,12 +67,14 @@ public class SocketHandler {
 
         if (Objects.isNull(destination) || Objects.isNull(sessionId)) {
             log.warn("handleSubscribe missing destination or sessionId");
+
             return;
         }
 
-        log.info("Session {} subscribed to destination: {}", sessionId, destination);
+        log.info("Session {} subscribed to destination: {}", LogSanitizer.sanitize(sessionId), LogSanitizer.sanitize(destination));
 
-        String regex = Constants.EVENT_UDPATE_ROOM.replace("%s", "[A-Z0-9]+");
+        String regex = Constants.EVENT_UPDATE_ROOM + "[A-Z0-9]+";
+
         if (destination.matches(regex)) {
             String key = getSessionRedisKey(accessor.getSessionId());
             redisService.get(key, SocketAttributes.class).ifPresent(attributes -> {
@@ -91,15 +92,18 @@ public class SocketHandler {
         return String.format(Constants.REDIS_SESSIONS, sessionId);
     }
 
+    // Ponto de entrada dos eventos de sessão: nenhuma falha de handler pode interromper o fluxo do WebSocket
+    @SuppressWarnings("checkstyle:IllegalCatch")
     private void execute(SocketAttributes connection, boolean connect) {
         try {
             ConnectionTypeEnum type = ConnectionTypeEnum.get(connection.role(), connect);
+
             if (Objects.nonNull(type)) {
                 AbstractSocketHandler handler = context.getBean(type.getHandler());
                 handler.handle(connection);
             }
         } catch (Exception ex) {
-            log.error("Fail SocketHandler execute: {}", ex.getMessage());
+            log.error("Fail SocketHandler execute: {}", LogSanitizer.sanitize(ex.getMessage()));
         }
     }
 }

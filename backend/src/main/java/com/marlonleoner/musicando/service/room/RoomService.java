@@ -1,31 +1,30 @@
-package com.marlonleoner.musicando.service;
-
-import java.security.SecureRandom;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
+package com.marlonleoner.musicando.service.room;
 
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.repository.RoomRepository;
 import com.marlonleoner.musicando.util.UUID7;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class RoomService {
 
-    private final static String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private final static Integer ROOM_CODE_SIZE = 6;
+    private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final Integer ROOM_CODE_SIZE = 6;
 
     private final RoomRepository repository;
 
     private Room save(Room room) {
         room.setUpdatedAt(new Date());
+
         return repository.save(room);
     }
 

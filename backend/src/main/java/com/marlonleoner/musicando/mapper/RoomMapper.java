@@ -2,7 +2,6 @@ package com.marlonleoner.musicando.mapper;
 
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.dto.RoomDTO;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

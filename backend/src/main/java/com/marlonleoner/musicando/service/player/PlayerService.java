@@ -1,15 +1,14 @@
-package com.marlonleoner.musicando.service;
-
-import java.util.Date;
-import java.util.Optional;
-import org.springframework.stereotype.Service;
+package com.marlonleoner.musicando.service.player;
 
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.repository.PlayerRepository;
 import com.marlonleoner.musicando.util.UUID7;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

@@ -1,10 +1,6 @@
 package com.marlonleoner.musicando.domain;
 
-import java.util.List;
-import java.util.Objects;
-
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,6 +18,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+
+import java.util.List;
+import java.util.Objects;
 
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
@@ -67,10 +66,10 @@ public class Room extends BaseEntity {
         return isStatus(RoomStatus.FINISHED);
     }
 
-    public boolean validateSecrets(String id, String secret) {
-        return Objects.nonNull(this.id) &&
-                Objects.nonNull(this.secret) &&
-                this.id.equals(id) &&
-                this.secret.equals(secret);
+    public boolean validateSecrets(String roomId, String roomSecret) {
+        return Objects.nonNull(this.id)
+                && Objects.nonNull(this.secret)
+                && this.id.equals(roomId)
+                && this.secret.equals(roomSecret);
     }
 }

@@ -12,5 +12,7 @@ public class Constants {
     public static final String EVENTS_EXCHANGER = "MUSICANDO-EXCHANGER";
     public static final String EVENTS_ROOM_QUEUE = "MUSICANDO-EVENTS-%s";
 
-    public static final String EVENT_UDPATE_ROOM = "/topic/room/%s";
+    public static final String EVENT_UPDATE_ROOM = "/topic/room/";
+
+    public static final Integer SESSION_TTL_SECONDS = 3600;
 }

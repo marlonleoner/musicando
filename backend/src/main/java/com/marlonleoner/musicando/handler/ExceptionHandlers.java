@@ -1,5 +1,7 @@
 package com.marlonleoner.musicando.handler;
 
+import com.marlonleoner.musicando.domain.Error;
+import com.marlonleoner.musicando.domain.exception.BaseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -7,9 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import com.marlonleoner.musicando.domain.Error;
-import com.marlonleoner.musicando.domain.exception.BaseException;
 
 @RestControllerAdvice
 public class ExceptionHandlers {
