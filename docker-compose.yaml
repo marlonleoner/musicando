@@ -13,6 +13,11 @@ services:
       - REDIS_PORT
       - REDIS_USERNAME
       - REDIS_PASSWORD
+      - RABBITMQ_HOST
+      - RABBITMQ_PORT
+      - RABBITMQ_VIRTUAL_HOST
+      - RABBITMQ_USERNAME
+      - RABBITMQ_PASSWORD
     ports:
       - "8080:8080"
     links:
