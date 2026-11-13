@@ -1,9 +1,5 @@
 package com.marlonleoner.musicando.aggregation;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.dto.JoinRoomDTO;
@@ -12,10 +8,12 @@ import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.RoomAlreadyFinishedException;
 import com.marlonleoner.musicando.domain.request.JoinRoomRequest;
 import com.marlonleoner.musicando.mapper.RoomMapper;
-import com.marlonleoner.musicando.service.PlayerService;
-import com.marlonleoner.musicando.service.RoomService;
-
+import com.marlonleoner.musicando.service.player.PlayerService;
+import com.marlonleoner.musicando.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor

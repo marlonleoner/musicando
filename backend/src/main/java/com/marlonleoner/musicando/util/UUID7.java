@@ -1,7 +1,6 @@
 package com.marlonleoner.musicando.util;
 
 import com.github.f4b6a3.uuid.UuidCreator;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

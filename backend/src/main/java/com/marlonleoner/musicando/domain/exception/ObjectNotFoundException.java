@@ -1,8 +1,7 @@
 package com.marlonleoner.musicando.domain.exception;
 
-import org.springframework.http.HttpStatus;
-
 import com.marlonleoner.musicando.domain.BaseEntity;
+import org.springframework.http.HttpStatus;
 
 public class ObjectNotFoundException extends BaseException {
 

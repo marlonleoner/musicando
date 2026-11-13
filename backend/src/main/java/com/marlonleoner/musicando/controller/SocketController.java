@@ -1,17 +1,15 @@
 package com.marlonleoner.musicando.controller;
 
-import java.util.Optional;
-
+import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.event.BroadcastEnum;
+import com.marlonleoner.musicando.service.room.RoomService;
+import com.marlonleoner.musicando.service.socket.SocketService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
-import com.marlonleoner.musicando.domain.Room;
-import com.marlonleoner.musicando.domain.event.BroadcastEnum;
-import com.marlonleoner.musicando.service.RoomService;
-import com.marlonleoner.musicando.service.SocketService;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j

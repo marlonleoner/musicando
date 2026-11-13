@@ -1,8 +1,7 @@
 package com.marlonleoner.musicando.domain.socket;
 
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
 public record SocketAttributes(
         String sessionId,
@@ -10,7 +9,6 @@ public record SocketAttributes(
         String code,
         String secret,
         RoleEnum role) {
-
     public static SocketAttributes fromHeaders(StompHeaderAccessor accessor) {
         return new SocketAttributes(
                 accessor.getSessionId(),

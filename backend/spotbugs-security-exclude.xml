@@ -1,2 +1,6 @@
 <FindBugsFilter>
+    <!-- Apenas sinaliza que a classe é um endpoint Spring para revisão manual; não indica uma vulnerabilidade -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
 </FindBugsFilter>

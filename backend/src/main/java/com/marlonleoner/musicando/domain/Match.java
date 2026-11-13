@@ -1,10 +1,6 @@
 package com.marlonleoner.musicando.domain;
 
-import java.util.Date;
-import java.util.Objects;
-
 import com.marlonleoner.musicando.domain.enums.MatchStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,6 +15,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+
+import java.util.Date;
+import java.util.Objects;
 
 @NoArgsConstructor(force = true)
 @AllArgsConstructor

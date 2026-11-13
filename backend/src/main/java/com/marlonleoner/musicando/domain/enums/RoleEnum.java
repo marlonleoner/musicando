@@ -3,6 +3,8 @@ package com.marlonleoner.musicando.domain.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @AllArgsConstructor
 @Getter
 public enum RoleEnum {
@@ -11,11 +13,10 @@ public enum RoleEnum {
     PLAYER;
 
     public static RoleEnum from(String value) {
-        try {
-            return RoleEnum.valueOf(value.toUpperCase());
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Role inválido: " + value);
-        }
+        return Arrays.stream(values())
+                .filter(role -> role.toString().equals(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Role inválido: " + value));
     }
 
     @Override

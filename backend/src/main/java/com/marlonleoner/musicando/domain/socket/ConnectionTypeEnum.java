@@ -1,16 +1,15 @@
 package com.marlonleoner.musicando.domain.socket;
 
-import java.util.stream.Stream;
-
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
 import com.marlonleoner.musicando.handler.socket.AbstractSocketHandler;
 import com.marlonleoner.musicando.handler.socket.ClientConnectHandler;
 import com.marlonleoner.musicando.handler.socket.ClientDisconnectHandler;
 import com.marlonleoner.musicando.handler.socket.HostConnectHandler;
 import com.marlonleoner.musicando.handler.socket.HostDisconnectHandler;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.stream.Stream;
 
 @AllArgsConstructor
 @Getter
@@ -27,6 +26,7 @@ public enum ConnectionTypeEnum {
 
     public static ConnectionTypeEnum get(RoleEnum role, boolean connect) {
         String type = role.toString() + (connect ? "/connection" : "/disconnect");
+
         return Stream.of(values())
                 .filter(item -> item.getType().equals(type))
                 .findFirst()
