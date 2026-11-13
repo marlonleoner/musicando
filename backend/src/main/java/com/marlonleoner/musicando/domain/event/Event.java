@@ -1,7 +1,6 @@
 package com.marlonleoner.musicando.domain.event;
 
 import com.marlonleoner.musicando.domain.socket.SocketAttributes;
-import com.marlonleoner.musicando.mapper.JSONMapper;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,7 +16,7 @@ public class Event {
 
     private String playerId;
 
-    private String object;
+    private Object object;
 
     public Event(SocketAttributes connection) {
         String connectionRole = connection.role().toString();
@@ -27,6 +26,6 @@ public class Event {
         this.type = eventType;
         this.code = connection.code();
         this.playerId = sessionId;
-        this.object = JSONMapper.serialize(connection);
+        this.object = connection;
     }
 }

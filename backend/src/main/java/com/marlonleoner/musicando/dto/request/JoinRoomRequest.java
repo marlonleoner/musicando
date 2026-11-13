@@ -1,4 +1,4 @@
-package com.marlonleoner.musicando.domain.request;
+package com.marlonleoner.musicando.dto.request;
 
 public record JoinRoomRequest(String code, String nickname) {
 }
