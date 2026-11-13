@@ -1,4 +1,4 @@
-FROM openjdk:17
+FROM eclipse-temurin:25-jre
 
 COPY target/musicando-*.jar /app/musicando-backend.jar
 

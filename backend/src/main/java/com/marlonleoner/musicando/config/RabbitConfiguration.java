@@ -1,15 +1,14 @@
 package com.marlonleoner.musicando.config;
 
+import com.marlonleoner.musicando.util.Constants;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.marlonleoner.musicando.util.Constants;
 
 @Configuration
 public class RabbitConfiguration {
@@ -27,8 +26,8 @@ public class RabbitConfiguration {
      * Conversor de mensagens para JSON usando Jackson.
      */
     @Bean
-    public Jackson2JsonMessageConverter createJsonConverter() {
-        return new Jackson2JsonMessageConverter();
+    public JacksonJsonMessageConverter createJsonConverter() {
+        return new JacksonJsonMessageConverter();
     }
 
     /**
