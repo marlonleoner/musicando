@@ -1,7 +1,6 @@
 package com.marlonleoner.musicando.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -25,7 +24,7 @@ public class SocketConfiguration implements WebSocketMessageBrokerConfigurer {
      * @param config Registro do message broker usado para configuração
      */
     @Override
-    public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
+    public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/queue");
         config.setUserDestinationPrefix("/user");
         config.setApplicationDestinationPrefixes("/musicando");
@@ -44,7 +43,7 @@ public class SocketConfiguration implements WebSocketMessageBrokerConfigurer {
      * @param registry Registro de endpoints STOMP usado para configuração
      */
     @Override
-    public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
                 .withSockJS()
