@@ -5,6 +5,7 @@ import com.marlonleoner.musicando.domain.event.BroadcastEnum;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.domain.socket.ConnectionTypeEnum;
 import com.marlonleoner.musicando.domain.socket.SocketAttributes;
+import com.marlonleoner.musicando.mapper.RoomMapper;
 import com.marlonleoner.musicando.service.cache.RedisService;
 import com.marlonleoner.musicando.service.room.RoomService;
 import com.marlonleoner.musicando.service.socket.SocketService;
@@ -32,6 +33,8 @@ public class SocketHandler {
     private final RedisService redisService;
 
     private final RoomService roomService;
+
+    private final RoomMapper roomMapper;
 
     private final ApplicationContext context;
 
@@ -80,7 +83,7 @@ public class SocketHandler {
             redisService.get(key, SocketAttributes.class).ifPresent(attributes -> {
                 try {
                     Room room = roomService.getOrException(attributes.code());
-                    service.broadcastAll(BroadcastEnum.UPDATE_ROOM, room.getCode(), room);
+                    service.broadcastAll(BroadcastEnum.UPDATE_ROOM, room.getCode(), roomMapper.toStateBroadcast(room));
                 } catch (ObjectNotFoundException e) {
                     // empty catch
                 }

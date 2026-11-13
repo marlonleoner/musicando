@@ -2,11 +2,13 @@ package com.marlonleoner.musicando.aggregation;
 
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
-import com.marlonleoner.musicando.domain.dto.JoinRoomDTO;
-import com.marlonleoner.musicando.domain.dto.RoomDTO;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.RoomAlreadyFinishedException;
-import com.marlonleoner.musicando.domain.request.JoinRoomRequest;
+import com.marlonleoner.musicando.dto.request.JoinRoomRequest;
+import com.marlonleoner.musicando.dto.response.JoinRoomResponse;
+import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
+import com.marlonleoner.musicando.dto.response.RoomResponse;
+import com.marlonleoner.musicando.mapper.PlayerMapper;
 import com.marlonleoner.musicando.mapper.RoomMapper;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
@@ -23,31 +25,27 @@ public class RoomAggregation {
 
     private final PlayerService playerService;
 
-    public List<RoomDTO> getAllRooms() {
-        return roomService.findAll().stream().map(RoomMapper::toDTO).toList();
+    private final RoomMapper roomMapper;
+
+    private final PlayerMapper playerMapper;
+
+    public List<RoomResponse> getAllRooms() {
+        return roomMapper.toResponse(roomService.findAll());
     }
 
-    public RoomDTO createRoom() {
-        return RoomMapper.toDTO(roomService.createAndSave());
+    public RoomCreatedResponse createRoom() {
+        return roomMapper.toCreatedResponse(roomService.createAndSave());
     }
 
     /**
      * Permite que um jogador se junte a uma sala existente.
-     * 
-     * O método verifica se a sala existe e se não está finalizada.
-     * Se a sala não existir, uma exceção será lançada.
-     * Se a sala estiver finalizada, uma RoomAlreadyFinishedException será lançada.
-     * Se todas as verificações forem bem-sucedidas, um novo jogador é criado e
-     * adicionado à sala.
-     * 
-     * @param params Os parâmetros de entrada contendo o código da sala e o apelido
-     *               do jogador
-     * @return Um objeto DTO contendo o ID do jogador, sua chave secreta e o código
-     *         da sala
-     * @throws BaseException                se ocorrer um erro durante o processo
+     *
+     * @param params código da sala e apelido do jogador
+     * @return identificador e segredo do jogador, além do código da sala
+     * @throws BaseException                se a sala não existir
      * @throws RoomAlreadyFinishedException se a sala já estiver finalizada
      */
-    public JoinRoomDTO joinRoom(JoinRoomRequest params) throws BaseException {
+    public JoinRoomResponse joinRoom(JoinRoomRequest params) throws BaseException {
         Room room = roomService.getOrException(params.code());
 
         if (room.isFinished()) {
@@ -56,6 +54,6 @@ public class RoomAggregation {
 
         Player player = playerService.createAndSave(params.nickname(), room);
 
-        return new JoinRoomDTO(player.getId(), player.getSecret(), room.getCode());
+        return playerMapper.toJoinResponse(player);
     }
 }

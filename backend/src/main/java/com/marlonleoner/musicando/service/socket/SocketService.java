@@ -1,7 +1,6 @@
 package com.marlonleoner.musicando.service.socket;
 
 import com.marlonleoner.musicando.domain.event.BroadcastEnum;
-import com.marlonleoner.musicando.mapper.JSONMapper;
 import com.marlonleoner.musicando.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 public class SocketService {
 
     private final SimpMessagingTemplate messagingTemplate;
+
+    private final JsonMapper jsonMapper;
 
     private MessageHeaders createHeaders(String sessionId) {
         SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
@@ -28,17 +30,18 @@ public class SocketService {
 
     public void broadcastAll(BroadcastEnum context, String code, Object payload) {
         String destination = context.getTopic() + code;
-        String message = JSONMapper.serialize(payload);
+        String message = jsonMapper.writeValueAsString(payload);
         log.info("Broadcasting message '{}': {}", LogSanitizer.sanitize(destination), LogSanitizer.sanitize(message));
         messagingTemplate.convertAndSend(destination, message);
     }
 
     public void sendToSession(String sessionId, Object payload) {
-        log.info("Sending message to session {}: {}", LogSanitizer.sanitize(sessionId), LogSanitizer.sanitize(payload));
+        String message = jsonMapper.writeValueAsString(payload);
+        log.info("Sending message to session {}: {}", LogSanitizer.sanitize(sessionId), LogSanitizer.sanitize(message));
         messagingTemplate.convertAndSendToUser(
                 sessionId,
                 "/queue/room/host",
-                JSONMapper.serialize(payload),
+                message,
                 createHeaders(sessionId));
     }
 }
