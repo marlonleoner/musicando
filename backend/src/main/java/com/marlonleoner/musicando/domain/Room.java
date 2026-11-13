@@ -44,6 +44,8 @@ public class Room extends BaseEntity {
 
     private boolean connected;
 
+    private String hostSessionId;
+
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Player> players;
 

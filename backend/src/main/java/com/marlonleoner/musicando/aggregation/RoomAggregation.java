@@ -4,6 +4,7 @@ import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.RoomNotJoinableException;
+import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.dto.request.JoinRoomRequest;
 import com.marlonleoner.musicando.dto.response.JoinRoomResponse;
 import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
@@ -12,6 +13,7 @@ import com.marlonleoner.musicando.mapper.PlayerMapper;
 import com.marlonleoner.musicando.mapper.RoomMapper;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
+import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ public class RoomAggregation {
     private final RoomMapper roomMapper;
 
     private final PlayerMapper playerMapper;
+
+    private final RoomStateNotifier notifier;
 
     public List<RoomResponse> getAllRooms() {
         return roomMapper.toResponse(roomService.findAll());
@@ -54,6 +58,7 @@ public class RoomAggregation {
         }
 
         Player player = playerService.createAndSave(params.nickname(), room);
+        notifier.broadcast(room.getCode(), RoomStateReason.PLAYER_JOINED, player.getId());
 
         return playerMapper.toJoinResponse(player);
     }

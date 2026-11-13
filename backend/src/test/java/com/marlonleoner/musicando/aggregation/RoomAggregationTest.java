@@ -6,6 +6,7 @@ import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.domain.exception.RoomNotJoinableException;
+import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.dto.request.JoinRoomRequest;
 import com.marlonleoner.musicando.dto.response.JoinRoomResponse;
 import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
@@ -15,6 +16,7 @@ import com.marlonleoner.musicando.mapper.PlayerMapper;
 import com.marlonleoner.musicando.mapper.RoomMapper;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
+import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +49,9 @@ class RoomAggregationTest {
 
     @Mock
     private PlayerMapper playerMapper;
+
+    @Mock
+    private RoomStateNotifier notifier;
 
     @InjectMocks
     private RoomAggregation aggregation;
@@ -82,6 +88,7 @@ class RoomAggregationTest {
         when(playerMapper.toJoinResponse(player)).thenReturn(response);
 
         assertThat(aggregation.joinRoom(request)).isEqualTo(response);
+        verify(notifier).broadcast(room.getCode(), RoomStateReason.PLAYER_JOINED, player.getId());
     }
 
     @ParameterizedTest
@@ -94,6 +101,7 @@ class RoomAggregationTest {
 
         assertThatThrownBy(() -> aggregation.joinRoom(request)).isInstanceOf(RoomNotJoinableException.class);
         verify(playerService, never()).createAndSave(any(), any());
+        verifyNoInteractions(notifier);
     }
 
     @Test
@@ -103,5 +111,6 @@ class RoomAggregationTest {
 
         assertThatThrownBy(() -> aggregation.joinRoom(request)).isInstanceOf(ObjectNotFoundException.class);
         verify(playerService, never()).createAndSave(any(), any());
+        verifyNoInteractions(notifier);
     }
 }

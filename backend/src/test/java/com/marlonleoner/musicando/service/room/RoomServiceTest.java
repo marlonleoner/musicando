@@ -126,10 +126,11 @@ class RoomServiceTest {
         room.setStatus(current);
         room.setConnected(false);
 
-        service.onConnect(room);
+        service.onConnect(room, "session-1");
 
         final Room saved = captureSavedRoom();
         assertThat(saved.isConnected()).isTrue();
+        assertThat(saved.getHostSessionId()).isEqualTo("session-1");
         assertThat(saved.getStatus()).isEqualTo(expected);
         assertThat(saved.getUpdatedAt()).isNotNull();
     }
@@ -151,7 +152,15 @@ class RoomServiceTest {
 
         final Room saved = captureSavedRoom();
         assertThat(saved.isConnected()).isFalse();
+        assertThat(saved.getHostSessionId()).isNull();
         assertThat(saved.getStatus()).isEqualTo(expected);
+    }
+
+    @Test
+    void shouldReturnUpdatedRoomsWhenResettingConnections() {
+        when(repository.resetConnections()).thenReturn(3);
+
+        assertThat(service.resetConnections()).isEqualTo(3);
     }
 
     private Room captureSavedRoom() {

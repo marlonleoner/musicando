@@ -1,7 +1,6 @@
 package com.marlonleoner.musicando.service.cache;
 
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
-import com.marlonleoner.musicando.domain.socket.SocketAttributes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +20,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RedisServiceTest {
 
-    private static final String KEY = "@MUSICANDO:SESSIONS:session-1";
+    private static final String KEY = "@MUSICANDO:TEST:session-1";
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -50,18 +49,16 @@ class RedisServiceTest {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(KEY)).thenReturn(null);
 
-        assertThat(service.get(KEY, SocketAttributes.class)).isEmpty();
+        assertThat(service.get(KEY, StoredValue.class)).isEmpty();
     }
 
     @Test
     void shouldConvertStoredValueWhenKeyExists() {
-        final Map<String, Object> stored = Map.of("sessionId", "session-1", "id", "room-id", "code", "ABC123",
-                "secret", "room-secret", "role", "host");
+        final Map<String, Object> stored = Map.of("id", "room-id", "code", "ABC123", "role", "host");
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(KEY)).thenReturn(stored);
 
-        assertThat(service.get(KEY, SocketAttributes.class))
-                .contains(new SocketAttributes("session-1", "room-id", "ABC123", "room-secret", RoleEnum.HOST));
+        assertThat(service.get(KEY, StoredValue.class)).contains(new StoredValue("room-id", "ABC123", RoleEnum.HOST));
     }
 
     @Test
@@ -69,5 +66,8 @@ class RedisServiceTest {
         service.invalidate(KEY);
 
         verify(redisTemplate).delete(KEY);
+    }
+
+    private record StoredValue(String id, String code, RoleEnum role) {
     }
 }
