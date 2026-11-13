@@ -2,9 +2,10 @@ package com.marlonleoner.musicando.controller;
 
 import com.marlonleoner.musicando.aggregation.RoomAggregation;
 import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
-import com.marlonleoner.musicando.domain.exception.RoomAlreadyFinishedException;
+import com.marlonleoner.musicando.domain.exception.RoomNotJoinableException;
 import com.marlonleoner.musicando.dto.request.JoinRoomRequest;
 import com.marlonleoner.musicando.dto.response.JoinRoomResponse;
 import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
@@ -84,8 +85,8 @@ class RoomControllerTest {
     }
 
     @Test
-    void shouldReturnConflictWhenRoomIsFinished() throws Exception {
-        when(aggregation.joinRoom(any(JoinRoomRequest.class))).thenThrow(new RoomAlreadyFinishedException("ABC123"));
+    void shouldReturnConflictWhenRoomIsNotJoinable() throws Exception {
+        when(aggregation.joinRoom(any(JoinRoomRequest.class))).thenThrow(new RoomNotJoinableException("ABC123", RoomStatus.FINISHED));
 
         mockMvc.perform(post(JOIN_URL).contentType(MediaType.APPLICATION_JSON).content(JOIN_BODY))
                 .andExpect(status().isConflict())

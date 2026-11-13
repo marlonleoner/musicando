@@ -22,6 +22,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -41,12 +42,12 @@ public class SocketHandler {
     @EventListener
     public void handleConnect(SessionConnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        SocketAttributes attributes = SocketAttributes.fromHeaders(accessor);
+        readAttributes(accessor).ifPresent(attributes -> {
+            String key = getSessionRedisKey(attributes.sessionId());
+            redisService.set(key, attributes, Constants.SESSION_TTL_SECONDS);
 
-        String key = getSessionRedisKey(attributes.sessionId());
-        redisService.set(key, attributes, Constants.SESSION_TTL_SECONDS);
-
-        execute(attributes, true);
+            execute(attributes, true);
+        });
     }
 
     @EventListener
@@ -84,10 +85,20 @@ public class SocketHandler {
                 try {
                     Room room = roomService.getOrException(attributes.code());
                     service.broadcastAll(BroadcastEnum.UPDATE_ROOM, room.getCode(), roomMapper.toStateBroadcast(room));
-                } catch (ObjectNotFoundException e) {
-                    // empty catch
+                } catch (ObjectNotFoundException ex) {
+                    log.debug("Room {} not found for subscription", LogSanitizer.sanitize(attributes.code()));
                 }
             });
+        }
+    }
+
+    private Optional<SocketAttributes> readAttributes(StompHeaderAccessor accessor) {
+        try {
+            return Optional.of(SocketAttributes.fromHeaders(accessor));
+        } catch (IllegalArgumentException ex) {
+            log.warn("Connection {} ignored: {}", LogSanitizer.sanitize(accessor.getSessionId()), LogSanitizer.sanitize(ex.getMessage()));
+
+            return Optional.empty();
         }
     }
 

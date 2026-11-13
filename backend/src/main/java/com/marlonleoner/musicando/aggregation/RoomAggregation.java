@@ -3,7 +3,7 @@ package com.marlonleoner.musicando.aggregation;
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.exception.BaseException;
-import com.marlonleoner.musicando.domain.exception.RoomAlreadyFinishedException;
+import com.marlonleoner.musicando.domain.exception.RoomNotJoinableException;
 import com.marlonleoner.musicando.dto.request.JoinRoomRequest;
 import com.marlonleoner.musicando.dto.response.JoinRoomResponse;
 import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
@@ -42,14 +42,15 @@ public class RoomAggregation {
      *
      * @param params código da sala e apelido do jogador
      * @return identificador e segredo do jogador, além do código da sala
-     * @throws BaseException                se a sala não existir
-     * @throws RoomAlreadyFinishedException se a sala já estiver finalizada
+     * @throws BaseException            se a sala não existir
+     * @throws RoomNotJoinableException se a sala não estiver aguardando jogadores (em jogo, pausada, finalizada ou
+     *                                  fechada)
      */
     public JoinRoomResponse joinRoom(JoinRoomRequest params) throws BaseException {
         Room room = roomService.getOrException(params.code());
 
-        if (room.isFinished()) {
-            throw new RoomAlreadyFinishedException(room.getCode());
+        if (!room.isWaiting()) {
+            throw new RoomNotJoinableException(room.getCode(), room.getStatus());
         }
 
         Player player = playerService.createAndSave(params.nickname(), room);
