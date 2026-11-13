@@ -108,10 +108,12 @@ public class RoomService {
      * Marca o host como conectado. Uma partida pausada pela queda do host é retomada; nos demais estados o status da
      * sala é mantido.
      *
-     * @param room sala do host
+     * @param room      sala do host
+     * @param sessionId sessão WebSocket do host
      */
-    public void onConnect(Room room) {
+    public void onConnect(Room room, String sessionId) {
         room.setConnected(true);
+        room.setHostSessionId(sessionId);
 
         if (room.isPaused()) {
             room.setStatus(RoomStatus.IN_PROGRESS);
@@ -128,11 +130,22 @@ public class RoomService {
      */
     public void onDisconnect(Room room) {
         room.setConnected(false);
+        room.setHostSessionId(null);
 
         if (room.isInProgress()) {
             room.setStatus(RoomStatus.PAUSED);
         }
 
         save(room);
+    }
+
+    /**
+     * Marca todas as salas como desconectadas. Usado na inicialização, quando nenhuma conexão WebSocket pode estar
+     * ativa.
+     *
+     * @return quantidade de salas atualizadas
+     */
+    public int resetConnections() {
+        return repository.resetConnections();
     }
 }
