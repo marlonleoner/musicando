@@ -1,6 +1,6 @@
 package com.marlonleoner.musicando.domain.exception;
 
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import lombok.Getter;
 
 /**
@@ -10,9 +10,9 @@ import lombok.Getter;
 @Getter
 public class SocketCommandException extends RuntimeException {
 
-    private final SocketErrorCode errorCode;
+    private final ErrorCode errorCode;
 
-    public SocketCommandException(SocketErrorCode errorCode, String message) {
+    public SocketCommandException(ErrorCode errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
     }

@@ -1,8 +1,8 @@
 package com.marlonleoner.musicando.handler.socket;
 
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
 import com.marlonleoner.musicando.domain.exception.SocketAuthenticationException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.service.socket.SocketAuthenticationService;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class SocketAuthenticationInterceptorTest {
     @Test
     void shouldPropagateErrorWhenConnectCredentialsAreInvalid() {
         when(authenticationService.authenticate(null, null, null, null))
-                .thenThrow(new SocketAuthenticationException(SocketErrorCode.INVALID_CREDENTIALS));
+                .thenThrow(new SocketAuthenticationException(ErrorCode.INVALID_CREDENTIALS));
         final Message<byte[]> message = message(accessor(StompCommand.CONNECT, null));
 
         assertThatThrownBy(() -> interceptor.preSend(message, channel)).isInstanceOf(SocketAuthenticationException.class)
@@ -75,7 +75,7 @@ class SocketAuthenticationInterceptorTest {
 
     @Test
     void shouldPropagateErrorWhenSubscriptionIsNotAllowed() {
-        doThrow(new SocketAuthenticationException(SocketErrorCode.FORBIDDEN))
+        doThrow(new SocketAuthenticationException(ErrorCode.FORBIDDEN))
                 .when(authenticationService).authorizeSubscription(HOST, "/topic/room/OTHER1");
         final StompHeaderAccessor accessor = accessor(StompCommand.SUBSCRIBE, HOST);
         accessor.setDestination("/topic/room/OTHER1");

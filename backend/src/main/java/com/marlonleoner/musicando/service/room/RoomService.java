@@ -148,4 +148,14 @@ public class RoomService {
     public int resetConnections() {
         return repository.resetConnections();
     }
+
+    /**
+     * Encerra a sala. Ela deixa de aceitar jogadores e os clientes voltam para a tela inicial.
+     *
+     * @param room sala a ser encerrada
+     */
+    public void close(Room room) {
+        room.setStatus(RoomStatus.CLOSED);
+        save(room);
+    }
 }

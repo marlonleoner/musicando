@@ -1,7 +1,7 @@
 package com.marlonleoner.musicando.handler.socket;
 
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.exception.SocketAuthenticationException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -29,7 +29,7 @@ public class SocketErrorHandler extends StompSubProtocolErrorHandler {
         return MessageBuilder.createMessage(EMPTY_PAYLOAD, accessor.getMessageHeaders());
     }
 
-    private SocketErrorCode resolveCode(Throwable ex) {
+    private ErrorCode resolveCode(Throwable ex) {
         Throwable current = ex;
 
         while (Objects.nonNull(current)) {
@@ -40,6 +40,6 @@ public class SocketErrorHandler extends StompSubProtocolErrorHandler {
             current = current.getCause();
         }
 
-        return SocketErrorCode.INTERNAL_ERROR;
+        return ErrorCode.INTERNAL_ERROR;
     }
 }

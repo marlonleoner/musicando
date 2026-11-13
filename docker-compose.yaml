@@ -19,6 +19,7 @@ services:
       - RABBITMQ_USERNAME
       - RABBITMQ_PASSWORD
       - CORS_ALLOWED_ORIGINS
+      - ROOM_MAX_PLAYERS
     ports:
       - "8080:8080"
     links:

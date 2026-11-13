@@ -1,9 +1,9 @@
 package com.marlonleoner.musicando.service.socket;
 
 import com.marlonleoner.musicando.domain.Player;
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
 import com.marlonleoner.musicando.domain.exception.SocketAuthenticationException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
@@ -39,14 +39,14 @@ public class SocketAuthenticationService {
      */
     public SocketPrincipal authenticate(String role, String code, String id, String secret) {
         if (Objects.isNull(role) || Objects.isNull(code) || Objects.isNull(id) || Objects.isNull(secret)) {
-            throw new SocketAuthenticationException(SocketErrorCode.INVALID_CREDENTIALS);
+            throw new SocketAuthenticationException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         final RoleEnum roleEnum = parseRole(role);
         final boolean valid = RoleEnum.HOST.equals(roleEnum) ? isValidHost(code, id, secret) : isValidPlayer(code, id, secret);
 
         if (!valid) {
-            throw new SocketAuthenticationException(SocketErrorCode.INVALID_CREDENTIALS);
+            throw new SocketAuthenticationException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         return new SocketPrincipal(roleEnum, id, code);
@@ -64,7 +64,7 @@ public class SocketAuthenticationService {
                 || principal.isHost() && SocketDestinations.roomHostTopic(principal.roomCode()).equals(destination);
 
         if (!allowed) {
-            throw new SocketAuthenticationException(SocketErrorCode.FORBIDDEN);
+            throw new SocketAuthenticationException(ErrorCode.FORBIDDEN);
         }
     }
 
@@ -75,7 +75,7 @@ public class SocketAuthenticationService {
      */
     public void authorizeSend(String destination) {
         if (!SocketDestinations.COMMAND.equals(destination)) {
-            throw new SocketAuthenticationException(SocketErrorCode.FORBIDDEN);
+            throw new SocketAuthenticationException(ErrorCode.FORBIDDEN);
         }
     }
 
@@ -83,7 +83,7 @@ public class SocketAuthenticationService {
         try {
             return RoleEnum.from(role);
         } catch (IllegalArgumentException ex) {
-            throw new SocketAuthenticationException(SocketErrorCode.INVALID_CREDENTIALS);
+            throw new SocketAuthenticationException(ErrorCode.INVALID_CREDENTIALS);
         }
     }
 

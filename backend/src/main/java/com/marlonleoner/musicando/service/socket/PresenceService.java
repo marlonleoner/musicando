@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Presença dos participantes: marca host e jogadores como conectados ou desconectados, mantém apenas a conexão mais
@@ -49,6 +50,7 @@ public class PresenceService {
         final Player player = playerService.getOrException(principal.participantId());
         closePreviousSession(player.getSessionId(), sessionId);
         playerService.onConnect(player, sessionId);
+        playerService.ensureOwner(principal.roomCode());
         notifier.broadcast(principal.roomCode(), RoomStateReason.PLAYER_CONNECTED, principal.participantId());
     }
 
@@ -72,15 +74,22 @@ public class PresenceService {
             return;
         }
 
-        final Player player = playerService.getOrException(principal.participantId());
+        final Optional<Player> player = playerService.findById(principal.participantId());
 
-        if (!sessionId.equals(player.getSessionId())) {
+        if (player.isEmpty()) {
+            log.debug("Ignoring disconnection of player {} who already left the room", LogSanitizer.sanitize(principal.participantId()));
+
+            return;
+        }
+
+        if (!sessionId.equals(player.get().getSessionId())) {
             log.debug("Ignoring disconnection of replaced player session {}", LogSanitizer.sanitize(sessionId));
 
             return;
         }
 
-        playerService.onDisconnect(player);
+        playerService.onDisconnect(player.get());
+        playerService.ensureOwner(principal.roomCode());
         notifier.broadcast(principal.roomCode(), RoomStateReason.PLAYER_DISCONNECTED, principal.participantId());
     }
 

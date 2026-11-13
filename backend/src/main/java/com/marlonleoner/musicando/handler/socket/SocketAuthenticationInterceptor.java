@@ -1,7 +1,7 @@
 package com.marlonleoner.musicando.handler.socket;
 
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.exception.SocketAuthenticationException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.service.socket.SocketAuthenticationService;
 import com.marlonleoner.musicando.util.LogSanitizer;
@@ -73,6 +73,6 @@ public class SocketAuthenticationInterceptor implements ChannelInterceptor {
         }
 
         log.warn("Frame received without authenticated principal - session {}", LogSanitizer.sanitize(accessor.getSessionId()));
-        throw new SocketAuthenticationException(SocketErrorCode.FORBIDDEN);
+        throw new SocketAuthenticationException(ErrorCode.FORBIDDEN);
     }
 }

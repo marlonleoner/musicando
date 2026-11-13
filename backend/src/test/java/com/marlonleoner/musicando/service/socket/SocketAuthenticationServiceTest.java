@@ -2,9 +2,9 @@ package com.marlonleoner.musicando.service.socket;
 
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
 import com.marlonleoner.musicando.domain.exception.SocketAuthenticationException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.service.player.PlayerService;
@@ -154,12 +154,12 @@ class SocketAuthenticationServiceTest {
     private void assertInvalidCredentials(final org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
         assertThatThrownBy(call).isInstanceOf(SocketAuthenticationException.class)
                 .extracting(ex -> ((SocketAuthenticationException) ex).getErrorCode())
-                .isEqualTo(SocketErrorCode.INVALID_CREDENTIALS);
+                .isEqualTo(ErrorCode.INVALID_CREDENTIALS);
     }
 
     private void assertForbidden(final org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
         assertThatThrownBy(call).isInstanceOf(SocketAuthenticationException.class)
                 .extracting(ex -> ((SocketAuthenticationException) ex).getErrorCode())
-                .isEqualTo(SocketErrorCode.FORBIDDEN);
+                .isEqualTo(ErrorCode.FORBIDDEN);
     }
 }

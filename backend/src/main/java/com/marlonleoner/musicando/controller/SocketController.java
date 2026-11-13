@@ -1,10 +1,8 @@
 package com.marlonleoner.musicando.controller;
 
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.exception.BaseException;
-import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
-import com.marlonleoner.musicando.domain.exception.RoomNotJoinableException;
 import com.marlonleoner.musicando.domain.exception.SocketCommandException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.dto.socket.SocketCommand;
 import com.marlonleoner.musicando.dto.socket.SocketErrorPayload;
@@ -59,28 +57,16 @@ public class SocketController {
 
     @MessageExceptionHandler(BaseException.class)
     public void handleBaseException(BaseException ex, Principal principal) {
-        sendError(principal, toErrorCode(ex), ex.getMessage());
+        sendError(principal, ex.getErrorCode(), ex.getMessage());
     }
 
     @MessageExceptionHandler(Exception.class)
     public void handleUnexpectedException(Exception ex, Principal principal) {
         log.error("Unexpected error while processing socket command", ex);
-        sendError(principal, SocketErrorCode.INTERNAL_ERROR, INTERNAL_ERROR_MESSAGE);
+        sendError(principal, ErrorCode.INTERNAL_ERROR, INTERNAL_ERROR_MESSAGE);
     }
 
-    private SocketErrorCode toErrorCode(BaseException ex) {
-        if (ex instanceof ObjectNotFoundException) {
-            return SocketErrorCode.ROOM_NOT_FOUND;
-        }
-
-        if (ex instanceof RoomNotJoinableException) {
-            return SocketErrorCode.ROOM_NOT_JOINABLE;
-        }
-
-        return SocketErrorCode.INTERNAL_ERROR;
-    }
-
-    private void sendError(Principal principal, SocketErrorCode code, String message) {
+    private void sendError(Principal principal, ErrorCode code, String message) {
         socketService.sendErrorToParticipant(principal.getName(), SocketEvent.error(new SocketErrorPayload(code, message, null)));
     }
 }

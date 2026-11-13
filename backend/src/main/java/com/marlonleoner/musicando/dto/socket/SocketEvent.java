@@ -18,6 +18,10 @@ public record SocketEvent(SocketEventType type, SocketEventReason reason, Object
         return new SocketEvent(SocketEventType.ROOM_STATE, reason, state, Instant.now());
     }
 
+    public static SocketEvent kicked() {
+        return new SocketEvent(SocketEventType.KICKED, null, null, Instant.now());
+    }
+
     public static SocketEvent error(final SocketErrorPayload error) {
         return new SocketEvent(SocketEventType.ERROR, null, error, Instant.now());
     }

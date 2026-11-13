@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,6 +45,46 @@ public class PlayerService {
                 .build();
 
         return repository.save(player);
+    }
+
+    public void delete(Player player) {
+        repository.delete(player);
+    }
+
+    /**
+     * Garante que a sala tenha um VIP. O VIP atual é mantido enquanto estiver conectado; caso contrário, a coroa passa
+     * para o jogador conectado mais antigo. Sem ninguém conectado, o VIP atual é mantido, ou, se a sala não tiver VIP,
+     * o jogador mais antigo assume.
+     *
+     * @param roomCode código da sala
+     * @return {@code true} se o VIP mudou
+     */
+    public boolean ensureOwner(String roomCode) {
+        final List<Player> players = repository.findByRoomCodeOrderByCreatedAtAsc(roomCode);
+        final Optional<Player> owner = players.stream().filter(Player::isOwner).findFirst();
+
+        if (owner.map(Player::isConnected).orElse(false)) {
+            return false;
+        }
+
+        Optional<Player> candidate = players.stream().filter(Player::isConnected).findFirst();
+
+        if (candidate.isEmpty() && owner.isEmpty() && !players.isEmpty()) {
+            candidate = Optional.of(players.getFirst());
+        }
+
+        if (candidate.isEmpty()) {
+            return false;
+        }
+
+        owner.ifPresent(current -> {
+            current.setOwner(false);
+            save(current);
+        });
+        candidate.get().setOwner(true);
+        save(candidate.get());
+
+        return true;
     }
 
     public void onConnect(Player player, String sessionId) {

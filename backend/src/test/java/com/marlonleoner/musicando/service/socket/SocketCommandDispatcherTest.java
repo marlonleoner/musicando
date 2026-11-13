@@ -1,15 +1,16 @@
 package com.marlonleoner.musicando.service.socket;
 
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.SocketCommandException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.dto.socket.SocketCommand;
 import com.marlonleoner.musicando.handler.socket.command.GetRoomStateCommandHandler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -55,7 +56,19 @@ class SocketCommandDispatcherTest {
         assertThatThrownBy(() -> dispatcher.dispatch(principal, new SocketCommand(type, null)))
                 .isInstanceOf(SocketCommandException.class)
                 .extracting(ex -> ((SocketCommandException) ex).getErrorCode())
-                .isEqualTo(SocketErrorCode.INVALID_COMMAND);
+                .isEqualTo(ErrorCode.INVALID_COMMAND);
+        verifyNoInteractions(context);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"LEAVE_ROOM, HOST", "KICK_PLAYER, PLAYER", "CLOSE_ROOM, PLAYER"})
+    void shouldThrowForbiddenWhenRoleIsNotAllowed(final String type, final RoleEnum role) {
+        final SocketPrincipal principal = new SocketPrincipal(role, "participant-1", "ABC123");
+
+        assertThatThrownBy(() -> dispatcher.dispatch(principal, new SocketCommand(type, null)))
+                .isInstanceOf(SocketCommandException.class)
+                .extracting(ex -> ((SocketCommandException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.FORBIDDEN);
         verifyNoInteractions(context);
     }
 }
