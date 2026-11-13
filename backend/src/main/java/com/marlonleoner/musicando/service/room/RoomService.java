@@ -6,6 +6,8 @@ import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.repository.RoomRepository;
 import com.marlonleoner.musicando.util.UUID7;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -13,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomService {
@@ -20,12 +23,20 @@ public class RoomService {
     private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final Integer ROOM_CODE_SIZE = 6;
 
+    private static final int MAX_CODE_ATTEMPTS = 5;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     private final RoomRepository repository;
 
     private Room save(Room room) {
         room.setUpdatedAt(new Date());
 
         return repository.save(room);
+    }
+
+    private Room saveAndFlush(Room room) {
+        return repository.saveAndFlush(room);
     }
 
     public List<Room> findAll() {
@@ -44,18 +55,35 @@ public class RoomService {
         return findByCode(code).orElseThrow(() -> new ObjectNotFoundException(Room.class));
     }
 
+    /**
+     * Cria uma sala com código único. A verificação prévia evita a maioria das colisões; a constraint {@code unique}
+     * do banco cobre a corrida entre duas criações simultâneas com o mesmo código, que é tratada com uma nova tentativa.
+     *
+     * @return sala criada, aguardando jogadores
+     */
     public Room createAndSave() {
-        String code = generateUniqueRoomCode();
+        for (int attempt = 1; attempt <= MAX_CODE_ATTEMPTS; attempt++) {
+            try {
+                return saveAndFlush(buildRoom(generateUniqueRoomCode()));
+            } catch (DataIntegrityViolationException ex) {
+                log.warn("Room code collision while creating room (attempt {} of {})", attempt, MAX_CODE_ATTEMPTS);
+            }
+        }
 
-        Room room = Room.builder()
+        throw new IllegalStateException("Could not generate a unique room code");
+    }
+
+    private Room buildRoom(String code) {
+        final Date now = new Date();
+
+        return Room.builder()
                 .id(UUID7.generate())
                 .code(code)
                 .secret(UUID7.generate())
                 .status(RoomStatus.WAITING)
-                .createdAt(new Date())
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
-
-        return save(room);
     }
 
     private String generateUniqueRoomCode() {
@@ -68,25 +96,42 @@ public class RoomService {
     }
 
     private String generateRoomCode() {
-        SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder(ROOM_CODE_SIZE);
         for (int i = 0; i < ROOM_CODE_SIZE; i++) {
-            sb.append(CHARS.charAt(random.nextInt(CHARS.length())));
+            sb.append(CHARS.charAt(RANDOM.nextInt(CHARS.length())));
         }
 
         return sb.toString();
     }
 
+    /**
+     * Marca o host como conectado. Uma partida pausada pela queda do host é retomada; nos demais estados o status da
+     * sala é mantido.
+     *
+     * @param room sala do host
+     */
     public void onConnect(Room room) {
         room.setConnected(true);
-        room.setStatus(RoomStatus.WAITING);
+
+        if (room.isPaused()) {
+            room.setStatus(RoomStatus.IN_PROGRESS);
+        }
 
         save(room);
     }
 
+    /**
+     * Marca o host como desconectado. Uma partida em andamento é pausada; nos demais estados o status da sala é
+     * mantido.
+     *
+     * @param room sala do host
+     */
     public void onDisconnect(Room room) {
         room.setConnected(false);
-        room.setStatus(RoomStatus.PAUSED);
+
+        if (room.isInProgress()) {
+            room.setStatus(RoomStatus.PAUSED);
+        }
 
         save(room);
     }

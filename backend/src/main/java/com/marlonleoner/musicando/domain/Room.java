@@ -58,8 +58,16 @@ public class Room extends BaseEntity {
         return Objects.nonNull(status) && status.equals(other);
     }
 
-    public boolean inGame() {
-        return !RoomStatus.WAITING.equals(this.status);
+    public boolean isWaiting() {
+        return isStatus(RoomStatus.WAITING);
+    }
+
+    public boolean isInProgress() {
+        return isStatus(RoomStatus.IN_PROGRESS);
+    }
+
+    public boolean isPaused() {
+        return isStatus(RoomStatus.PAUSED);
     }
 
     public boolean isFinished() {

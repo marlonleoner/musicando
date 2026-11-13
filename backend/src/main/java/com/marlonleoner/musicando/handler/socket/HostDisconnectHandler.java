@@ -1,8 +1,10 @@
 package com.marlonleoner.musicando.handler.socket;
 
 import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.event.BroadcastEnum;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.socket.SocketAttributes;
+import com.marlonleoner.musicando.mapper.RoomMapper;
 import com.marlonleoner.musicando.service.cache.RedisService;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.room.RoomService;
@@ -26,6 +28,8 @@ public class HostDisconnectHandler extends AbstractSocketHandler {
 
     private final MatchService matchService;
 
+    private final RoomMapper roomMapper;
+
     @Override
     protected void handle(SocketAttributes attributes) throws BaseException {
         log.info("Host disconnection initiated for room {} - SessionID: {}",
@@ -44,7 +48,7 @@ public class HostDisconnectHandler extends AbstractSocketHandler {
         roomService.onDisconnect(room);
         matchService.onDisconnect(room.getCurrentMatch());
 
-        // Notifica que o host saiu
-        socketService.broadcastAll(null, code, redisKey);
+        // Notifica os jogadores de que o host saiu (sala desconectada e, se havia partida em andamento, pausada)
+        socketService.broadcastAll(BroadcastEnum.UPDATE_ROOM, room.getCode(), roomMapper.toStateBroadcast(room));
     }
 }

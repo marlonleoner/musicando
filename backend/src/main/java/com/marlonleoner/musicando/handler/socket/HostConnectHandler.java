@@ -1,11 +1,14 @@
 package com.marlonleoner.musicando.handler.socket;
 
 import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.event.BroadcastEnum;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.socket.SocketAttributes;
+import com.marlonleoner.musicando.mapper.RoomMapper;
 import com.marlonleoner.musicando.service.cache.RedisService;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.room.RoomService;
+import com.marlonleoner.musicando.service.socket.SocketService;
 import com.marlonleoner.musicando.util.Constants;
 import com.marlonleoner.musicando.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,10 @@ public class HostConnectHandler extends AbstractSocketHandler {
     private final RoomService roomService;
 
     private final MatchService matchService;
+
+    private final SocketService socketService;
+
+    private final RoomMapper roomMapper;
 
     @Override
     protected void handle(SocketAttributes attributes) throws BaseException {
@@ -45,5 +52,7 @@ public class HostConnectHandler extends AbstractSocketHandler {
 
         roomService.onConnect(room);
         matchService.onConnect(room.getCurrentMatch());
+
+        socketService.broadcastAll(BroadcastEnum.UPDATE_ROOM, room.getCode(), roomMapper.toStateBroadcast(room));
     }
 }

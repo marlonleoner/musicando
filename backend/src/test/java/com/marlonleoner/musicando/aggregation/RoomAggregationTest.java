@@ -5,7 +5,7 @@ import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
-import com.marlonleoner.musicando.domain.exception.RoomAlreadyFinishedException;
+import com.marlonleoner.musicando.domain.exception.RoomNotJoinableException;
 import com.marlonleoner.musicando.dto.request.JoinRoomRequest;
 import com.marlonleoner.musicando.dto.response.JoinRoomResponse;
 import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
@@ -70,12 +70,11 @@ class RoomAggregationTest {
         assertThat(aggregation.createRoom()).isEqualTo(response);
     }
 
-    @ParameterizedTest
-    @EnumSource(value = RoomStatus.class, names = "FINISHED", mode = EnumSource.Mode.EXCLUDE)
-    void shouldCreatePlayerWhenRoomIsNotFinished(final RoomStatus status) throws BaseException {
+    @Test
+    void shouldCreatePlayerWhenRoomIsWaitingForPlayers() throws BaseException {
         final JoinRoomRequest request = Fixture.make(JoinRoomRequest.class);
         final Room room = Fixture.make(Room.class);
-        room.setStatus(status);
+        room.setStatus(RoomStatus.WAITING);
         final Player player = Fixture.make(Player.class);
         final JoinRoomResponse response = Fixture.make(JoinRoomResponse.class);
         when(roomService.getOrException(request.code())).thenReturn(room);
@@ -85,14 +84,15 @@ class RoomAggregationTest {
         assertThat(aggregation.joinRoom(request)).isEqualTo(response);
     }
 
-    @Test
-    void shouldThrowRoomAlreadyFinishedExceptionWhenRoomIsFinished() throws BaseException {
+    @ParameterizedTest
+    @EnumSource(value = RoomStatus.class, names = "WAITING", mode = EnumSource.Mode.EXCLUDE)
+    void shouldThrowRoomNotJoinableExceptionWhenRoomIsNotWaitingForPlayers(final RoomStatus status) throws BaseException {
         final JoinRoomRequest request = Fixture.make(JoinRoomRequest.class);
         final Room room = Fixture.make(Room.class);
-        room.setStatus(RoomStatus.FINISHED);
+        room.setStatus(status);
         when(roomService.getOrException(request.code())).thenReturn(room);
 
-        assertThatThrownBy(() -> aggregation.joinRoom(request)).isInstanceOf(RoomAlreadyFinishedException.class);
+        assertThatThrownBy(() -> aggregation.joinRoom(request)).isInstanceOf(RoomNotJoinableException.class);
         verify(playerService, never()).createAndSave(any(), any());
     }
 
