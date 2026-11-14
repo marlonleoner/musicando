@@ -1,14 +1,12 @@
 package com.marlonleoner.musicando.service.match;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.any;
-import com.marlonleoner.musicando.validator.MatchSettingsValidator;
-import com.marlonleoner.musicando.domain.music.MusicPlaylist;
-import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.Match;
+import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.MatchStatus;
+import com.marlonleoner.musicando.domain.music.MusicPlaylist;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.repository.MatchRepository;
+import com.marlonleoner.musicando.validator.MatchSettingsValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,8 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MatchServiceTest {
@@ -144,5 +144,54 @@ class MatchServiceTest {
 
         verify(repository).save(match);
         assertThat(match.getStatus()).isEqualTo(MatchStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void shouldCopyPreviousSettingsWhenCreatingNextMatch() {
+        final Room room = Fixture.make(Room.class);
+        final Match previous = Fixture.make(Match.class);
+        when(repository.save(any(Match.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final Match match = service.createNext(room, previous);
+
+        assertThat(match.getId()).isNotEqualTo(previous.getId());
+        assertThat(match.getStatus()).isEqualTo(MatchStatus.WAITING);
+        assertThat(match.getRoom()).isEqualTo(room);
+        assertThat(match.getPlaylistId()).isEqualTo(previous.getPlaylistId());
+        assertThat(match.getPlaylistName()).isEqualTo(previous.getPlaylistName());
+        assertThat(match.getPlaylistCover()).isEqualTo(previous.getPlaylistCover());
+        assertThat(match.getPlaylistTrackCount()).isEqualTo(previous.getPlaylistTrackCount());
+        assertThat(match.getRounds()).isEqualTo(previous.getRounds());
+        assertThat(match.getRoundDuration()).isEqualTo(previous.getRoundDuration());
+    }
+
+    @Test
+    void shouldUseDefaultSettingsWhenCreatingNextMatchWithoutPrevious() {
+        when(repository.save(any(Match.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final Match match = service.createNext(Fixture.make(Room.class), null);
+
+        assertThat(match.hasPlaylist()).isFalse();
+        assertThat(match.getRounds()).isEqualTo(MatchSettingsValidator.DEFAULT_ROUNDS);
+    }
+
+    @Test
+    void shouldFinishMatchWithEndTimeWhenFinishing() {
+        final Match match = Fixture.make(Match.class);
+        match.setStatus(MatchStatus.IN_PROGRESS);
+        match.setEndTime(null);
+
+        service.finish(match);
+
+        verify(repository).save(match);
+        assertThat(match.getStatus()).isEqualTo(MatchStatus.FINISHED);
+        assertThat(match.getEndTime()).isNotNull();
+    }
+
+    @Test
+    void shouldIgnoreFinishWhenMatchIsNull() {
+        service.finish(null);
+
+        verifyNoInteractions(repository);
     }
 }

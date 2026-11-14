@@ -56,7 +56,7 @@ class DeezerIntegratorTest {
     }
 
     private static DeezerTrackClientResponse track(final long id) {
-        return new DeezerTrackClientResponse(id, "Song " + id, null, true, "preview.mp3", new DeezerArtistClientResponse("Artist"));
+        return new DeezerTrackClientResponse(id, "Song " + id, null, true, "preview.mp3", new DeezerArtistClientResponse("Artist"), null);
     }
 
     private static DeezerPageClientResponse<DeezerTrackClientResponse> tracksPage(final int from, final int to, final String next) {
@@ -173,9 +173,38 @@ class DeezerIntegratorTest {
     })
     void shouldMapTitleAndPlayableWhenReadingTracks(final String title, final String titleShort, final Boolean readable, final String preview,
                                                     final String expectedTitle, final boolean expectedPlayable) throws BaseException {
-        final DeezerTrackClientResponse track = new DeezerTrackClientResponse(1L, title, titleShort, readable, preview, null);
+        final DeezerTrackClientResponse track = new DeezerTrackClientResponse(1L, title, titleShort, readable, preview, null, null);
         when(client.playlistTracks(PLAYLIST_ID, 0, 100)).thenReturn(new DeezerPageClientResponse<>(List.of(track), 1, null, null));
 
         assertThat(integrator.playlistTracks(PLAYLIST_ID)).containsExactly(new MusicTrack("1", expectedTitle, null, expectedPlayable));
+    }
+
+    @Test
+    void shouldReturnPreviewWhenTrackHasPreview() throws BaseException {
+        when(client.track("10")).thenReturn(track(10));
+
+        assertThat(integrator.findPreview("10")).contains("preview.mp3");
+    }
+
+    @ParameterizedTest
+    @CsvSource(nullValues = "NULL", value = {"NULL, false", "'', false", "preview.mp3, true"})
+    void shouldReturnEmptyWhenTrackHasNoPreviewOrReturnsError(final String preview, final boolean withError) throws BaseException {
+        when(client.track("10")).thenReturn(new DeezerTrackClientResponse(10L, "Song", null, true, preview, null, withError ? ERROR : null));
+
+        assertThat(integrator.findPreview("10")).isEmpty();
+    }
+
+    @Test
+    void shouldReturnEmptyWhenTrackReturnsNothing() throws BaseException {
+        when(client.track("10")).thenReturn(null);
+
+        assertThat(integrator.findPreview("10")).isEmpty();
+    }
+
+    @Test
+    void shouldThrowMusicProviderExceptionWhenTrackRequestFails() {
+        when(client.track("10")).thenThrow(new ResourceAccessException("timeout"));
+
+        assertThatThrownBy(() -> integrator.findPreview("10")).isInstanceOf(MusicProviderException.class);
     }
 }

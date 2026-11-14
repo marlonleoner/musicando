@@ -6,6 +6,7 @@ import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.fixture.Fixture;
+import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.room.RoomService;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ class CloseRoomCommandHandlerTest {
     @Mock
     private RoomStateNotifier notifier;
 
+    @Mock
+    private GameEngine gameEngine;
+
     @InjectMocks
     private CloseRoomCommandHandler handler;
 
@@ -38,7 +42,8 @@ class CloseRoomCommandHandlerTest {
 
         handler.handle(principal, null);
 
-        final InOrder order = inOrder(roomService, notifier);
+        final InOrder order = inOrder(gameEngine, roomService, notifier);
+        order.verify(gameEngine).stop(room.getCode());
         order.verify(roomService).close(room);
         order.verify(notifier).broadcast(room.getCode(), RoomStateReason.ROOM_CLOSED, room.getId());
     }

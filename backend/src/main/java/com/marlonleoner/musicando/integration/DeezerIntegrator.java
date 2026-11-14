@@ -78,6 +78,21 @@ public class DeezerIntegrator implements MusicProvider {
         return List.copyOf(tracks.subList(0, Math.min(tracks.size(), properties.maxTracks())));
     }
 
+    @Override
+    public Optional<String> findPreview(String trackId) throws MusicProviderException {
+        final DeezerTrackClientResponse track = call(() -> client.track(trackId));
+
+        if (Objects.isNull(track) || Objects.nonNull(track.error()) || !hasPreview(track)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(track.preview());
+    }
+
+    private boolean hasPreview(DeezerTrackClientResponse track) {
+        return Objects.nonNull(track.preview()) && !track.preview().isBlank();
+    }
+
     private <T> T call(Supplier<T> request) throws MusicProviderException {
         try {
             return request.get();
@@ -95,7 +110,7 @@ public class DeezerIntegrator implements MusicProvider {
     private MusicTrack toTrack(DeezerTrackClientResponse track) {
         final String title = Objects.nonNull(track.titleShort()) && !track.titleShort().isBlank() ? track.titleShort() : track.title();
         final String artist = Objects.isNull(track.artist()) ? null : track.artist().name();
-        final boolean playable = !Boolean.FALSE.equals(track.readable()) && Objects.nonNull(track.preview()) && !track.preview().isBlank();
+        final boolean playable = !Boolean.FALSE.equals(track.readable()) && hasPreview(track);
 
         return new MusicTrack(String.valueOf(track.id()), title, artist, playable);
     }

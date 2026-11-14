@@ -20,6 +20,9 @@ public interface DeezerClient {
     @GetExchange("/playlist/{id}")
     DeezerPlaylistClientResponse playlist(@PathVariable("id") String id);
 
+    @GetExchange("/track/{id}")
+    DeezerTrackClientResponse track(@PathVariable("id") String id);
+
     @GetExchange("/playlist/{id}/tracks")
     DeezerPageClientResponse<DeezerTrackClientResponse> playlistTracks(@PathVariable("id") String id, @RequestParam("index") int index,
             @RequestParam("limit") int limit);

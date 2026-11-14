@@ -18,7 +18,7 @@ import com.marlonleoner.musicando.domain.music.MusicTrack;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.fixture.Fixture;
-import com.marlonleoner.musicando.service.game.GameStateService;
+import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.game.RoundGenerator;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.music.MusicService;
@@ -30,13 +30,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -60,7 +63,7 @@ class StartGameCommandHandlerTest {
     private RoundGenerator roundGenerator;
 
     @Mock
-    private GameStateService gameStateService;
+    private GameEngine gameEngine;
 
     @Mock
     private RoomStateNotifier notifier;
@@ -75,7 +78,7 @@ class StartGameCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new StartGameCommandHandler(playerService, roomService, matchService, musicService, roundGenerator, gameStateService, notifier,
+        handler = new StartGameCommandHandler(playerService, roomService, matchService, musicService, roundGenerator, gameEngine, notifier,
                 new RoomProperties(12, 2));
         room = Fixture.make(Room.class);
         room.setStatus(RoomStatus.WAITING);
@@ -107,11 +110,16 @@ class StartGameCommandHandlerTest {
 
         handler.handle(principal, null);
 
-        final InOrder order = inOrder(gameStateService, matchService, roomService, notifier);
-        order.verify(gameStateService).save(room.getCode(), new GameState(match.getId(), 20, rounds, 0));
+        final InOrder order = inOrder(matchService, roomService, notifier, gameEngine);
         order.verify(matchService).start(match);
         order.verify(roomService).start(room);
         order.verify(notifier).broadcast(room.getCode(), RoomStateReason.GAME_STARTED, "player-1");
+        final ArgumentCaptor<GameState> state = ArgumentCaptor.forClass(GameState.class);
+        order.verify(gameEngine).start(eq(room.getCode()), state.capture());
+        assertThat(state.getValue().getMatchId()).isEqualTo(match.getId());
+        assertThat(state.getValue().getRoundDuration()).isEqualTo(20);
+        assertThat(state.getValue().getRounds()).isEqualTo(rounds);
+        assertThat(state.getValue().getPhase()).isNull();
     }
 
     @Test
@@ -120,7 +128,7 @@ class StartGameCommandHandlerTest {
         match.setPlaylistId(null);
 
         assertThatThrownBy(() -> handler.handle(principal, null)).isInstanceOf(InvalidSettingsException.class);
-        verifyNoInteractions(musicService, gameStateService, notifier);
+        verifyNoInteractions(musicService, gameEngine, notifier);
     }
 
     @Test
@@ -129,7 +137,7 @@ class StartGameCommandHandlerTest {
         room.setCurrentMatch(null);
 
         assertThatThrownBy(() -> handler.handle(principal, null)).isInstanceOf(InvalidSettingsException.class);
-        verifyNoInteractions(musicService, gameStateService, notifier);
+        verifyNoInteractions(musicService, gameEngine, notifier);
     }
 
     @Test
@@ -138,7 +146,7 @@ class StartGameCommandHandlerTest {
         room.setPlayers(List.of(player(true), player(false)));
 
         assertThatThrownBy(() -> handler.handle(principal, null)).isInstanceOf(NotEnoughPlayersException.class);
-        verifyNoInteractions(musicService, gameStateService, notifier);
+        verifyNoInteractions(musicService, gameEngine, notifier);
     }
 
     @Test
@@ -156,7 +164,7 @@ class StartGameCommandHandlerTest {
         when(roundGenerator.generate(List.of(), 10)).thenThrow(new PlaylistTooSmallException(10, 0));
 
         assertThatThrownBy(() -> handler.handle(principal, null)).isInstanceOf(PlaylistTooSmallException.class);
-        verifyNoInteractions(gameStateService, matchService, notifier);
+        verifyNoInteractions(gameEngine, matchService, notifier);
     }
 
     @ParameterizedTest
@@ -166,7 +174,7 @@ class StartGameCommandHandlerTest {
         room.setStatus(status);
 
         assertThatThrownBy(() -> handler.handle(principal, null)).isInstanceOf(GameAlreadyStartedException.class);
-        verifyNoInteractions(musicService, gameStateService, notifier);
+        verifyNoInteractions(musicService, gameEngine, notifier);
     }
 
     @Test

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -124,5 +126,20 @@ public class PlayerService {
         }
 
         return player;
+    }
+
+    /**
+     * Grava o resultado da partida em cada jogador.
+     */
+    public void applyResults(List<Player> players, Map<String, Integer> scores, Map<String, Integer> roundsWon) {
+        Objects.requireNonNullElse(players, List.<Player>of()).forEach(player -> {
+            player.setScore(scores.getOrDefault(player.getId(), 0));
+            player.setRoundsWon(roundsWon.getOrDefault(player.getId(), 0));
+            save(player);
+        });
+    }
+
+    public void resetResults(List<Player> players) {
+        applyResults(players, Map.of(), Map.of());
     }
 }

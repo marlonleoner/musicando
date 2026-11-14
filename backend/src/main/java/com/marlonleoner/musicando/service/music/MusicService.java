@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,5 +27,9 @@ public class MusicService {
 
     public List<MusicTrack> playlistTracks(String playlistId) throws MusicProviderException {
         return provider.playlistTracks(playlistId);
+    }
+
+    public Optional<String> findPreview(String trackId) throws MusicProviderException {
+        return provider.findPreview(trackId);
     }
 }

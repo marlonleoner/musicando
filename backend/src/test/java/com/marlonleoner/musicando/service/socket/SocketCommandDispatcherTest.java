@@ -61,7 +61,7 @@ class SocketCommandDispatcherTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"LEAVE_ROOM, HOST", "KICK_PLAYER, PLAYER", "CLOSE_ROOM, PLAYER", "UPDATE_SETTINGS, HOST", "START_GAME, HOST"})
+    @CsvSource({"LEAVE_ROOM, HOST", "KICK_PLAYER, PLAYER", "CLOSE_ROOM, PLAYER", "UPDATE_SETTINGS, HOST", "START_GAME, HOST", "SUBMIT_ANSWER, HOST", "PLAY_AGAIN, HOST"})
     void shouldThrowForbiddenWhenRoleIsNotAllowed(final String type, final RoleEnum role) {
         final SocketPrincipal principal = new SocketPrincipal(role, "participant-1", "ABC123");
 

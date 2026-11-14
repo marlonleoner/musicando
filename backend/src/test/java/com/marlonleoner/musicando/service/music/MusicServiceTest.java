@@ -57,4 +57,11 @@ class MusicServiceTest {
 
         assertThat(service.playlistTracks("1")).isEqualTo(tracks);
     }
+
+    @Test
+    void shouldReturnProviderPreviewWhenFindingPreview() throws BaseException {
+        when(provider.findPreview("10")).thenReturn(Optional.of("preview.mp3"));
+
+        assertThat(service.findPreview("10")).contains("preview.mp3");
+    }
 }

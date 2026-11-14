@@ -13,6 +13,7 @@ import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.dto.socket.SocketCommand;
 import com.marlonleoner.musicando.dto.socket.SocketErrorPayload;
 import com.marlonleoner.musicando.dto.socket.SocketEvent;
+import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import com.marlonleoner.musicando.service.socket.SocketCommandDispatcher;
 import com.marlonleoner.musicando.service.socket.SocketService;
@@ -42,6 +43,9 @@ class SocketControllerTest {
     @Mock
     private RoomStateNotifier notifier;
 
+    @Mock
+    private GameEngine gameEngine;
+
     @InjectMocks
     private SocketController controller;
 
@@ -61,6 +65,7 @@ class SocketControllerTest {
         when(socketService.toJson(snapshot)).thenReturn("{}");
 
         assertThat(controller.handleRoomSnapshot(PRINCIPAL)).isEqualTo("{}");
+        verify(gameEngine).sendCurrentPhase(PRINCIPAL);
     }
 
     @Test

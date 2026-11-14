@@ -1,9 +1,9 @@
 package com.marlonleoner.musicando.service.player;
 
-import com.marlonleoner.musicando.domain.exception.BaseException;
-import com.marlonleoner.musicando.domain.exception.NotRoomOwnerException;
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.exception.BaseException;
+import com.marlonleoner.musicando.domain.exception.NotRoomOwnerException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.repository.PlayerRepository;
@@ -15,12 +15,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -197,5 +199,38 @@ class PlayerServiceTest {
         when(repository.findById(player.getId())).thenReturn(Optional.of(player));
 
         assertThatThrownBy(() -> service.getOwnerOrException(player.getId())).isInstanceOf(NotRoomOwnerException.class);
+    }
+
+    @Test
+    void shouldStoreScoreAndRoundsWonOfEachPlayerWhenApplyingResults() {
+        final Player first = Fixture.make(Player.class);
+        final Player second = Fixture.make(Player.class);
+
+        service.applyResults(List.of(first, second), Map.of(first.getId(), 1800), Map.of(first.getId(), 2));
+
+        verify(repository, times(2)).save(any(Player.class));
+        assertThat(first.getScore()).isEqualTo(1800);
+        assertThat(first.getRoundsWon()).isEqualTo(2);
+        assertThat(second.getScore()).isZero();
+        assertThat(second.getRoundsWon()).isZero();
+    }
+
+    @Test
+    void shouldZeroScoresWhenResettingResults() {
+        final Player player = Fixture.make(Player.class);
+        player.setScore(900);
+        player.setRoundsWon(1);
+
+        service.resetResults(List.of(player));
+
+        assertThat(player.getScore()).isZero();
+        assertThat(player.getRoundsWon()).isZero();
+    }
+
+    @Test
+    void shouldIgnoreResultsWhenThereAreNoPlayers() {
+        service.applyResults(null, Map.of(), Map.of());
+
+        verify(repository, never()).save(any(Player.class));
     }
 }
