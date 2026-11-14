@@ -1,13 +1,6 @@
-import { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Element } from "../types/types";
-
-interface IThemeContext {
-    theme: "dark" | "light";
-    toggleTheme: () => void;
-    setTheme: (newTheme: "dark" | "light") => void;
-}
-
-export const ThemeContext = createContext<IThemeContext | undefined>(undefined);
+import { ThemeContext } from "./contexts";
 
 export const ThemeProvider = ({ children }: Element) => {
     const [theme, setThemeState] = useState<"dark" | "light">(() => {
