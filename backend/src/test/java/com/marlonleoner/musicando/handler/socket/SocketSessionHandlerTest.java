@@ -1,8 +1,8 @@
 package com.marlonleoner.musicando.handler.socket;
 
+import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
-import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.service.socket.PresenceService;
 import org.junit.jupiter.api.Test;

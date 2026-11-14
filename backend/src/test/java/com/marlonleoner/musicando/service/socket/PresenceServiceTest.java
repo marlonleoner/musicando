@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -96,6 +98,7 @@ class PresenceServiceTest {
         service.onConnected(playerOf(player), SESSION_ID);
 
         verify(playerService).onConnect(player, SESSION_ID);
+        verify(playerService).ensureOwner(player.getRoom().getCode());
         verify(notifier).broadcast(player.getRoom().getCode(), RoomStateReason.PLAYER_CONNECTED, player.getId());
         verifyNoInteractions(sessionRegistry, matchService);
     }
@@ -120,17 +123,18 @@ class PresenceServiceTest {
 
     @Test
     void shouldDisconnectPlayerAndNotifyRoomWhenCurrentPlayerSessionCloses() throws ObjectNotFoundException {
-        final Player player = player(SESSION_ID);
+        final Player player = storedPlayer(SESSION_ID);
 
         service.onDisconnected(playerOf(player), SESSION_ID);
 
         verify(playerService).onDisconnect(player);
+        verify(playerService).ensureOwner(player.getRoom().getCode());
         verify(notifier).broadcast(player.getRoom().getCode(), RoomStateReason.PLAYER_DISCONNECTED, player.getId());
     }
 
     @Test
     void shouldIgnoreDisconnectionWhenPlayerSessionWasReplaced() throws ObjectNotFoundException {
-        final Player player = player(SESSION_ID);
+        final Player player = storedPlayer(SESSION_ID);
 
         service.onDisconnected(playerOf(player), "session-old");
 
@@ -150,6 +154,25 @@ class PresenceServiceTest {
         final Player player = Fixture.make(Player.class);
         player.setSessionId(sessionId);
         when(playerService.getOrException(player.getId())).thenReturn(player);
+
+        return player;
+    }
+
+    @Test
+    void shouldIgnoreDisconnectionWhenPlayerAlreadyLeftTheRoom() throws ObjectNotFoundException {
+        final Player player = Fixture.make(Player.class);
+        when(playerService.findById(player.getId())).thenReturn(Optional.empty());
+
+        service.onDisconnected(playerOf(player), SESSION_ID);
+
+        verify(playerService, never()).onDisconnect(any());
+        verifyNoInteractions(notifier);
+    }
+
+    private Player storedPlayer(final String sessionId) {
+        final Player player = Fixture.make(Player.class);
+        player.setSessionId(sessionId);
+        when(playerService.findById(player.getId())).thenReturn(Optional.of(player));
 
         return player;
     }

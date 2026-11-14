@@ -1,5 +1,6 @@
 package com.marlonleoner.musicando.handler;
 
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.dto.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex) {
-        return ResponseEntity.status(ex.getCode()).body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+        return ResponseEntity.status(ex.getCode()).body(new ErrorResponse(ex.getCode(), ex.getErrorCode(), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
@@ -32,6 +33,6 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         log.error("Unexpected error while processing request", ex);
         final int status = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
-        return ResponseEntity.status(status).body(new ErrorResponse(status, INTERNAL_ERROR_MESSAGE));
+        return ResponseEntity.status(status).body(new ErrorResponse(status, ErrorCode.INTERNAL_ERROR, INTERNAL_ERROR_MESSAGE));
     }
 }

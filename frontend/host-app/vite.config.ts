@@ -10,6 +10,12 @@ const __dirname = dirname(__filename);
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [react(), tailwindcss()],
+    server: {
+        // Escuta em todas as interfaces para a TV/celulares acessarem pelo IP da máquina
+        host: true,
+        port: 5173,
+        strictPort: true,
+    },
     resolve: {
         alias: {
             "@context": resolve(__dirname, "./src/context"),

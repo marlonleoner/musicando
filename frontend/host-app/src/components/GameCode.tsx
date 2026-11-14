@@ -3,7 +3,7 @@ interface IGameCode {
 }
 
 const GameCode = ({ code }: IGameCode) => {
-    return <span className="font-['Monoton']">{code}</span>;
+    return <span className="font-['Monoton'] tracking-widest">{code}</span>;
 };
 
 export default GameCode;

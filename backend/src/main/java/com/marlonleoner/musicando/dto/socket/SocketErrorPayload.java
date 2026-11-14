@@ -1,6 +1,6 @@
 package com.marlonleoner.musicando.dto.socket;
 
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 
-public record SocketErrorPayload(SocketErrorCode code, String message, String command) {
+public record SocketErrorPayload(ErrorCode code, String message, String command) {
 }

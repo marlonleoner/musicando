@@ -1,7 +1,7 @@
 package com.marlonleoner.musicando.handler.socket;
 
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.exception.SocketAuthenticationException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -16,14 +16,14 @@ class SocketErrorHandlerTest {
 
     @Test
     void shouldSendErrorCodeWhenAuthenticationFails() {
-        final Message<byte[]> error = handler.handleClientMessageProcessingError(null, new SocketAuthenticationException(SocketErrorCode.INVALID_CREDENTIALS));
+        final Message<byte[]> error = handler.handleClientMessageProcessingError(null, new SocketAuthenticationException(ErrorCode.INVALID_CREDENTIALS));
 
         assertErrorFrame(error, "INVALID_CREDENTIALS");
     }
 
     @Test
     void shouldFindErrorCodeWhenAuthenticationExceptionIsWrapped() {
-        final MessagingException wrapped = new MessagingException("delivery failed", new SocketAuthenticationException(SocketErrorCode.FORBIDDEN));
+        final MessagingException wrapped = new MessagingException("delivery failed", new SocketAuthenticationException(ErrorCode.FORBIDDEN));
 
         assertErrorFrame(handler.handleClientMessageProcessingError(null, wrapped), "FORBIDDEN");
     }

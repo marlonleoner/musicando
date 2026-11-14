@@ -1,4 +1,6 @@
 package com.marlonleoner.musicando.dto.response;
 
-public record ErrorResponse(Integer status, String message) {
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
+
+public record ErrorResponse(Integer status, ErrorCode code, String message) {
 }

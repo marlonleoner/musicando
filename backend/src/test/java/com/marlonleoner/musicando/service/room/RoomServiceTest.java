@@ -157,6 +157,16 @@ class RoomServiceTest {
     }
 
     @Test
+    void shouldCloseRoomWhenClosing() {
+        final Room room = Fixture.make(Room.class);
+        room.setStatus(RoomStatus.WAITING);
+
+        service.close(room);
+
+        assertThat(captureSavedRoom().getStatus()).isEqualTo(RoomStatus.CLOSED);
+    }
+
+    @Test
     void shouldReturnUpdatedRoomsWhenResettingConnections() {
         when(repository.resetConnections()).thenReturn(3);
 

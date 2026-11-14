@@ -1,13 +1,13 @@
 package com.marlonleoner.musicando.controller;
 
 import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.domain.exception.RoomNotJoinableException;
 import com.marlonleoner.musicando.domain.exception.SocketCommandException;
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
 import com.marlonleoner.musicando.domain.socket.SocketEventType;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.dto.socket.SocketCommand;
@@ -65,41 +65,41 @@ class SocketControllerTest {
 
     @Test
     void shouldSendErrorWithCommandCodeToSenderWhenCommandIsRejected() {
-        controller.handleCommandException(new SocketCommandException(SocketErrorCode.FORBIDDEN, "denied"), PRINCIPAL);
+        controller.handleCommandException(new SocketCommandException(ErrorCode.FORBIDDEN, "denied"), PRINCIPAL);
 
-        assertErrorSent(SocketErrorCode.FORBIDDEN);
+        assertErrorSent(ErrorCode.FORBIDDEN);
     }
 
     @Test
     void shouldSendRoomNotFoundToSenderWhenObjectIsNotFound() {
         controller.handleBaseException(new ObjectNotFoundException(Room.class), PRINCIPAL);
 
-        assertErrorSent(SocketErrorCode.ROOM_NOT_FOUND);
+        assertErrorSent(ErrorCode.ROOM_NOT_FOUND);
     }
 
     @Test
     void shouldSendRoomNotJoinableToSenderWhenRoomIsNotJoinable() {
         controller.handleBaseException(new RoomNotJoinableException("ABC123", RoomStatus.FINISHED), PRINCIPAL);
 
-        assertErrorSent(SocketErrorCode.ROOM_NOT_JOINABLE);
+        assertErrorSent(ErrorCode.ROOM_NOT_JOINABLE);
     }
 
     @Test
     void shouldSendInternalErrorToSenderWhenBaseExceptionIsGeneric() {
         controller.handleBaseException(new BaseException("generic"), PRINCIPAL);
 
-        assertErrorSent(SocketErrorCode.INTERNAL_ERROR);
+        assertErrorSent(ErrorCode.INTERNAL_ERROR);
     }
 
     @Test
     void shouldHideMessageWhenUnexpectedErrorOccurs() {
         controller.handleUnexpectedException(new IllegalStateException("database password is 123"), PRINCIPAL);
 
-        final SocketErrorPayload error = assertErrorSent(SocketErrorCode.INTERNAL_ERROR);
+        final SocketErrorPayload error = assertErrorSent(ErrorCode.INTERNAL_ERROR);
         assertThat(error.message()).doesNotContain("password");
     }
 
-    private SocketErrorPayload assertErrorSent(final SocketErrorCode code) {
+    private SocketErrorPayload assertErrorSent(final ErrorCode code) {
         final ArgumentCaptor<SocketEvent> captor = ArgumentCaptor.forClass(SocketEvent.class);
         verify(socketService).sendErrorToParticipant(eq(PRINCIPAL.participantId()), captor.capture());
         assertThat(captor.getValue().type()).isEqualTo(SocketEventType.ERROR);

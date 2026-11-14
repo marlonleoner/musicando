@@ -1,6 +1,6 @@
 package com.marlonleoner.musicando.service.socket;
 
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.dto.socket.SocketErrorPayload;
 import com.marlonleoner.musicando.dto.socket.SocketEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class SocketServiceTest {
 
-    private static final SocketEvent EVENT = SocketEvent.error(new SocketErrorPayload(SocketErrorCode.FORBIDDEN, "denied", null));
+    private static final SocketEvent EVENT = SocketEvent.error(new SocketErrorPayload(ErrorCode.FORBIDDEN, "denied", null));
 
     private final JsonMapper jsonMapper = JsonMapper.builder().build();
 

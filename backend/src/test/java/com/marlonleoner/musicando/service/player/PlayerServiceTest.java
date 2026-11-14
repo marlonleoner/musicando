@@ -11,16 +11,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PlayerServiceTest {
+
+    private static final String CODE = "ABC123";
 
     @Mock
     private PlayerRepository repository;
@@ -95,5 +100,82 @@ class PlayerServiceTest {
         when(repository.resetConnections()).thenReturn(5);
 
         assertThat(service.resetConnections()).isEqualTo(5);
+    }
+
+    @Test
+    void shouldDeletePlayerWhenDeleting() {
+        final Player player = Fixture.make(Player.class);
+
+        service.delete(player);
+
+        verify(repository).delete(player);
+    }
+
+    @Test
+    void shouldKeepOwnerWhenOwnerIsConnected() {
+        final List<Player> players = players(true, true, false, true);
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(players);
+
+        assertThat(service.ensureOwner(CODE)).isFalse();
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void shouldTransferOwnershipToOldestConnectedPlayerWhenOwnerIsDisconnected() {
+        final List<Player> players = players(true, false, false, false, false, true, false, true);
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(players);
+
+        assertThat(service.ensureOwner(CODE)).isTrue();
+        assertThat(players).extracting(Player::isOwner).containsExactly(false, false, true, false);
+    }
+
+    @Test
+    void shouldKeepDisconnectedOwnerWhenNobodyIsConnected() {
+        final List<Player> players = players(true, false, false, false);
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(players);
+
+        assertThat(service.ensureOwner(CODE)).isFalse();
+        assertThat(players.getFirst().isOwner()).isTrue();
+    }
+
+    @Test
+    void shouldMakeOldestPlayerOwnerWhenRoomHasNoOwnerAndNobodyIsConnected() {
+        final List<Player> players = players(false, false, false, false);
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(players);
+
+        assertThat(service.ensureOwner(CODE)).isTrue();
+        assertThat(players).extracting(Player::isOwner).containsExactly(true, false);
+    }
+
+    @Test
+    void shouldMakeConnectedPlayerOwnerWhenOwnerLeftTheRoom() {
+        final List<Player> players = players(false, false, false, true);
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(players);
+
+        assertThat(service.ensureOwner(CODE)).isTrue();
+        assertThat(players).extracting(Player::isOwner).containsExactly(false, true);
+    }
+
+    @Test
+    void shouldDoNothingWhenRoomHasNoPlayers() {
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(List.of());
+
+        assertThat(service.ensureOwner(CODE)).isFalse();
+        verify(repository, never()).save(any());
+    }
+
+    /**
+     * Cria jogadores em ordem de entrada a partir de pares (owner, connected).
+     */
+    private List<Player> players(final boolean... ownerAndConnected) {
+        final List<Player> players = new ArrayList<>();
+        for (int i = 0; i < ownerAndConnected.length; i += 2) {
+            final Player player = Fixture.make(Player.class);
+            player.setOwner(ownerAndConnected[i]);
+            player.setConnected(ownerAndConnected[i + 1]);
+            players.add(player);
+        }
+
+        return players;
     }
 }

@@ -1,6 +1,6 @@
 package com.marlonleoner.musicando.domain.exception;
 
-import com.marlonleoner.musicando.domain.socket.SocketErrorCode;
+import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import lombok.Getter;
 import org.springframework.messaging.MessagingException;
 
@@ -11,9 +11,9 @@ import org.springframework.messaging.MessagingException;
 @Getter
 public class SocketAuthenticationException extends MessagingException {
 
-    private final SocketErrorCode errorCode;
+    private final ErrorCode errorCode;
 
-    public SocketAuthenticationException(SocketErrorCode errorCode) {
+    public SocketAuthenticationException(ErrorCode errorCode) {
         super(errorCode.name());
         this.errorCode = errorCode;
     }
