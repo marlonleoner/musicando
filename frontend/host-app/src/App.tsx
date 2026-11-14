@@ -3,6 +3,8 @@ import ConnectionBanner from "./components/ConnectionBanner";
 import { GameProvider } from "./context/GameContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { useGame } from "./hooks/useGame";
+import FinalRanking from "./pages/FinalRanking";
+import Game from "./pages/Game";
 import Home from "./pages/Home";
 import Lobby from "./pages/Lobby";
 import StatusScreen from "./pages/StatusScreen";
@@ -36,18 +38,11 @@ function Screen() {
         return <StatusScreen title="Partida pausada" />;
     }
 
-    const playlist = room.settings?.playlist;
+    if (room.status === "FINISHED") {
+        return <FinalRanking room={room} />;
+    }
 
-    return (
-        <StatusScreen
-            title="A partida vai começar!"
-            description={
-                playlist
-                    ? `${playlist.name} · ${room.settings?.rounds} rodadas. As rodadas chegam na próxima fase do projeto.`
-                    : "As rodadas chegam na próxima fase do projeto."
-            }
-        />
-    );
+    return <Game room={room} />;
 }
 
 function App() {

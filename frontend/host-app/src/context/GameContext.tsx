@@ -1,22 +1,35 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useHostSocket } from "../hooks/useHostSocket";
-import type { ErrorPayload, HostSession, RoomState, RoomStateReason } from "../types/protocol";
+import type {
+    ErrorPayload,
+    GameEvent,
+    HostSession,
+    RoomAudio,
+    RoomState,
+    RoomStateReason,
+    RoundView,
+} from "../types/protocol";
 import type { Element } from "../types/types";
 import { GameContext, type IGameContext } from "./contexts";
 import { apiErrorMessage, createRoom as createRoomRequest } from "../utils/api.utils";
+import { applyGameEvent } from "../utils/round.utils";
 import { clearHostSession, loadHostSession, saveHostSession } from "../utils/storage.utils";
 
 export const GameProvider = ({ children }: Element) => {
     const [session, setSession] = useState<HostSession | null>(loadHostSession);
     const [room, setRoom] = useState<RoomState | null>(null);
     const [creatingRoom, setCreatingRoom] = useState(false);
+    const [round, setRound] = useState<RoundView | null>(null);
+    const [audio, setAudio] = useState<RoomAudio | null>(null);
     const roomRef = useRef<RoomState | null>(null);
 
     const resetToHome = useCallback(() => {
         clearHostSession();
         roomRef.current = null;
         setRoom(null);
+        setRound(null);
+        setAudio(null);
         setSession(null);
     }, []);
 
@@ -41,11 +54,26 @@ export const GameProvider = ({ children }: Element) => {
                 toast.info(`${nicknameOf(previous?.players) ?? "O jogador"} foi removido da sala`);
             }
 
+            if (state.status === "WAITING") {
+                setRound(null);
+                setAudio(null);
+            }
+
             roomRef.current = state;
             setRoom(state);
         },
         [resetToHome],
     );
+
+    const handleGameEvent = useCallback((event: GameEvent) => {
+        if (event.type === "ROUND_AUDIO") {
+            setAudio({ round: event.payload.round, previewUrl: event.payload.previewUrl });
+
+            return;
+        }
+
+        setRound((current) => applyGameEvent(current, event));
+    }, []);
 
     const handleCommandError = useCallback((error: ErrorPayload) => toast.error(error.message), []);
 
@@ -57,6 +85,7 @@ export const GameProvider = ({ children }: Element) => {
     const { status, sendCommand, reclaim } = useHostSocket({
         session,
         onRoomState: handleRoomState,
+        onGameEvent: handleGameEvent,
         onCommandError: handleCommandError,
         onInvalidSession: handleInvalidSession,
     });
@@ -93,6 +122,8 @@ export const GameProvider = ({ children }: Element) => {
         () => ({
             session,
             room,
+            round,
+            audio,
             connection: status,
             creatingRoom,
             createRoom,
@@ -100,7 +131,7 @@ export const GameProvider = ({ children }: Element) => {
             closeRoom,
             reclaimScreen: reclaim,
         }),
-        [session, room, status, creatingRoom, createRoom, kickPlayer, closeRoom, reclaim],
+        [session, room, round, audio, status, creatingRoom, createRoom, kickPlayer, closeRoom, reclaim],
     );
 
     return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

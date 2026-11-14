@@ -2,6 +2,7 @@ import { Client, type IMessage } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
     ErrorPayload,
+    GameEvent,
     PlayerSession,
     RoomState,
     RoomStateReason,
@@ -15,11 +16,22 @@ const SESSION_REPLACED_CLOSE_CODE = 4001;
 
 const RECONNECT_DELAY_MS = 3000;
 
+const GAME_EVENTS: ReadonlySet<string> = new Set([
+    "ROUND_COUNTDOWN",
+    "ROUND_STARTED",
+    "ROUND_AUDIO",
+    "ANSWER_RECEIVED",
+    "ROUND_ENDED",
+]);
+
+const isGameEvent = (event: SocketEvent): event is GameEvent => GAME_EVENTS.has(event.type);
+
 export type ConnectionStatus = "connecting" | "connected" | "reconnecting" | "replaced";
 
 interface Options {
     session: PlayerSession | null;
     onRoomState: (state: RoomState, reason?: RoomStateReason) => void;
+    onGameEvent: (event: GameEvent) => void;
     onKicked: () => void;
     onCommandError: (error: ErrorPayload) => void;
     onInvalidSession: () => void;
@@ -29,16 +41,23 @@ interface Options {
  * Conexão STOMP do jogador. Autentica com as credenciais recebidas ao entrar na sala, assina os canais da sala e
  * mantém apenas a foto mais recente da sala (pelo timestamp do evento). Reconecta sozinho em caso de queda.
  */
-export const usePlayerSocket = ({ session, onRoomState, onKicked, onCommandError, onInvalidSession }: Options) => {
+export const usePlayerSocket = ({
+    session,
+    onRoomState,
+    onGameEvent,
+    onKicked,
+    onCommandError,
+    onInvalidSession,
+}: Options) => {
     const [status, setStatus] = useState<ConnectionStatus>("connecting");
     const [attempt, setAttempt] = useState(0);
     const clientRef = useRef<Client | null>(null);
     const lastStateAtRef = useRef<number>(0);
-    const callbacksRef = useRef({ onRoomState, onKicked, onCommandError, onInvalidSession });
+    const callbacksRef = useRef({ onRoomState, onGameEvent, onKicked, onCommandError, onInvalidSession });
 
     useEffect(() => {
-        callbacksRef.current = { onRoomState, onKicked, onCommandError, onInvalidSession };
-    }, [onRoomState, onKicked, onCommandError, onInvalidSession]);
+        callbacksRef.current = { onRoomState, onGameEvent, onKicked, onCommandError, onInvalidSession };
+    }, [onRoomState, onGameEvent, onKicked, onCommandError, onInvalidSession]);
 
     useEffect(() => {
         if (!session) {
@@ -66,6 +85,8 @@ export const usePlayerSocket = ({ session, onRoomState, onKicked, onCommandError
 
                 lastStateAtRef.current = at;
                 callbacksRef.current.onRoomState(event.payload, event.reason);
+            } else if (isGameEvent(event)) {
+                callbacksRef.current.onGameEvent(event);
             } else if (event.type === "KICKED") {
                 void client.deactivate();
                 callbacksRef.current.onKicked();

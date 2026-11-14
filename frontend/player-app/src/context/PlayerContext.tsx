@@ -1,8 +1,9 @@
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { usePlayerSocket } from "../hooks/usePlayerSocket";
-import type { ErrorPayload, PlayerSession, RoomState, SettingsChanges } from "../types/protocol";
+import type { ErrorPayload, GameEvent, PlayerSession, RoomState, RoundView, SettingsChanges } from "../types/protocol";
 import { apiErrorMessage, commandErrorMessage, joinRoom } from "../utils/api.utils";
+import { applyGameEvent } from "../utils/round.utils";
 import { codeFromUrl } from "../utils/env.utils";
 import { clearPlayerSession, loadPlayerSession, savePlayerSession } from "../utils/storage.utils";
 import { type ExitReason, type IPlayerContext, PlayerContext } from "./contexts";
@@ -29,10 +30,19 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const [exitReason, setExitReason] = useState<ExitReason>(null);
     const [joining, setJoining] = useState(false);
     const [starting, setStarting] = useState(false);
+    const [round, setRound] = useState<RoundView | null>(null);
+    const [myAnswer, setMyAnswer] = useState<{ round: number; option: number } | null>(null);
+    const playerIdRef = useRef<string | null>(session?.playerId ?? null);
+
+    useEffect(() => {
+        playerIdRef.current = session?.playerId ?? null;
+    }, [session]);
 
     const exitRoom = useCallback((reason: ExitReason) => {
         clearPlayerSession();
         setRoom(null);
+        setRound(null);
+        setMyAnswer(null);
         setSession(null);
         setExitReason(reason);
     }, []);
@@ -46,15 +56,33 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
 
+            if (state.status === "WAITING") {
+                setRound(null);
+                setMyAnswer(null);
+            }
+
             setRoom(state);
         },
         [exitRoom],
     );
 
+    const handleGameEvent = useCallback((event: GameEvent) => {
+        setRound((current) => applyGameEvent(current, event));
+
+        if (event.type === "ROUND_ENDED") {
+            const mine = event.payload.results.find((result) => result.playerId === playerIdRef.current);
+            navigator.vibrate?.(mine?.correct ? 120 : [80, 60, 80]);
+        }
+    }, []);
+
     const handleKicked = useCallback(() => exitRoom("KICKED"), [exitRoom]);
 
     const handleCommandError = useCallback((error: ErrorPayload) => {
         setStarting(false);
+        if (error.code === "ANSWER_NOT_ACCEPTED") {
+            setMyAnswer(null);
+        }
+
         toast.error(commandErrorMessage(error));
     }, []);
 
@@ -63,6 +91,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const { status, sendCommand, reclaim } = usePlayerSocket({
         session,
         onRoomState: handleRoomState,
+        onGameEvent: handleGameEvent,
         onKicked: handleKicked,
         onCommandError: handleCommandError,
         onInvalidSession: handleInvalidSession,
@@ -104,6 +133,27 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [sendCommand]);
 
+    const submitAnswer = useCallback(
+        (option: number) => {
+            if (!round || round.phase !== "PLAYING" || myAnswer?.round === round.round) {
+                return;
+            }
+
+            if (sendCommand("SUBMIT_ANSWER", { round: round.round, option })) {
+                setMyAnswer({ round: round.round, option });
+            } else {
+                toast.error("Sem conexão com o servidor. Aguarde a reconexão.");
+            }
+        },
+        [round, myAnswer, sendCommand],
+    );
+
+    const playAgain = useCallback(() => {
+        if (!sendCommand("PLAY_AGAIN")) {
+            toast.error("Sem conexão com o servidor. Aguarde a reconexão.");
+        }
+    }, [sendCommand]);
+
     const dismissExitReason = useCallback(() => setExitReason(null), []);
 
     const value = useMemo<IPlayerContext>(
@@ -118,6 +168,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             updateSettings,
             startGame,
             starting,
+            round,
+            myAnswer,
+            submitAnswer,
+            playAgain,
             reclaimTab: reclaim,
             dismissExitReason,
         }),
@@ -132,6 +186,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             updateSettings,
             startGame,
             starting,
+            round,
+            myAnswer,
+            submitAnswer,
+            playAgain,
             reclaim,
             dismissExitReason,
         ],

@@ -20,6 +20,7 @@ export type ErrorCode =
     | "NOT_ENOUGH_PLAYERS"
     | "GAME_ALREADY_STARTED"
     | "MUSIC_PROVIDER_UNAVAILABLE"
+    | "ANSWER_NOT_ACCEPTED"
     | "INTERNAL_ERROR";
 
 export type RoomStateReasonType =
@@ -33,12 +34,15 @@ export type RoomStateReasonType =
     | "PLAYER_KICKED"
     | "ROOM_CLOSED"
     | "SETTINGS_UPDATED"
-    | "GAME_STARTED";
+    | "GAME_STARTED"
+    | "GAME_FINISHED"
+    | "PLAY_AGAIN";
 
 export interface Player {
     id: string;
     nickname: string;
     score: number;
+    roundsWon: number;
     owner: boolean;
     connected: boolean;
 }
@@ -75,12 +79,80 @@ export interface ErrorPayload {
     message: string;
 }
 
+export interface RoundCountdownPayload {
+    round: number;
+    totalRounds: number;
+    durationMs: number;
+}
+
+export interface RoundStartedPayload {
+    round: number;
+    totalRounds: number;
+    options: string[];
+    durationMs: number;
+    roundDurationMs: number;
+    answeredPlayerIds: string[];
+}
+
+export interface RoundAudioPayload {
+    round: number;
+    previewUrl: string | null;
+    offsetMs: number;
+}
+
+export interface AnswerReceivedPayload {
+    round: number;
+    playerId: string;
+    answeredCount: number;
+    totalPlayers: number;
+}
+
+export interface RoundResult {
+    playerId: string;
+    nickname: string;
+    answered: boolean;
+    correct: boolean;
+    points: number;
+    responseTimeMs: number | null;
+}
+
+export interface Score {
+    playerId: string;
+    nickname: string;
+    score: number;
+}
+
+export interface RoundEndedPayload {
+    round: number;
+    totalRounds: number;
+    answer: string;
+    lastRound: boolean;
+    durationMs: number;
+    fastest: RoundResult[];
+    results: RoundResult[];
+    scoreboard: Score[];
+}
+
+export type GameEvent =
+    | { type: "ROUND_COUNTDOWN"; payload: RoundCountdownPayload; timestamp: string }
+    | { type: "ROUND_STARTED"; payload: RoundStartedPayload; timestamp: string }
+    | { type: "ROUND_AUDIO"; payload: RoundAudioPayload; timestamp: string }
+    | { type: "ANSWER_RECEIVED"; payload: AnswerReceivedPayload; timestamp: string }
+    | { type: "ROUND_ENDED"; payload: RoundEndedPayload; timestamp: string };
+
 export type SocketEvent =
+    | GameEvent
     | { type: "ROOM_STATE"; reason?: RoomStateReason; payload: RoomState; timestamp: string }
     | { type: "KICKED"; timestamp: string }
     | { type: "ERROR"; payload: ErrorPayload; timestamp: string };
 
-export type SocketCommandType = "GET_ROOM_STATE" | "LEAVE_ROOM" | "UPDATE_SETTINGS" | "START_GAME";
+export type SocketCommandType =
+    | "GET_ROOM_STATE"
+    | "LEAVE_ROOM"
+    | "UPDATE_SETTINGS"
+    | "START_GAME"
+    | "SUBMIT_ANSWER"
+    | "PLAY_AGAIN";
 
 /** Opções aceitas pelo backend para a configuração da partida. */
 export interface MatchOptions {
@@ -102,6 +174,18 @@ export interface PlayerSession {
     playerId: string;
     secret: string;
     roomCode: string;
+}
+
+/** Rodada atual, montada a partir dos eventos do jogo. `endsAt` é o fim da etapa no relógio deste aparelho. */
+export interface RoundView {
+    phase: "COUNTDOWN" | "PLAYING" | "REVEAL";
+    round: number;
+    totalRounds: number;
+    endsAt: number;
+    phaseDurationMs: number;
+    options: string[];
+    answeredPlayerIds: string[];
+    ended: RoundEndedPayload | null;
 }
 
 export interface ApiError {
