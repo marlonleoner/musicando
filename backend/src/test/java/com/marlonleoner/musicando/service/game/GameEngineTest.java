@@ -151,7 +151,7 @@ class GameEngineTest {
                 .matchId("match-id")
                 .roundDuration(20)
                 .rounds(new ArrayList<>(List.of(
-                        new GameRound("t1", "SONG A", List.of("SONG B", "SONG A", "SONG C", "SONG D")),
+                        new GameRound("t1", "SONG A", List.of("SONG B", "SONG A", "SONG C", "SONG D"), "ARTIST A", "cover-a.jpg"),
                         new GameRound("t2", "SONG E", List.of("SONG E", "SONG F", "SONG G", "SONG H")))))
                 .build();
     }
@@ -273,6 +273,8 @@ class GameEngineTest {
 
         final RoundEndedBroadcast ended = lastRoomPayload(SocketEventType.ROUND_ENDED);
         assertThat(ended.answer()).isEqualTo("SONG A");
+        assertThat(ended.artist()).isEqualTo("ARTIST A");
+        assertThat(ended.cover()).isEqualTo("cover-a.jpg");
         assertThat(ended.lastRound()).isFalse();
         assertThat(ended.fastest()).extracting(RoundResultResponse::playerId).containsExactly("bruno", "alice");
         assertThat(ended.scoreboard()).containsExactly(new ScoreResponse("bruno", "BRUNO", 900), new ScoreResponse("alice", "ALICE", 800),

@@ -89,4 +89,18 @@ class RoundGeneratorTest {
 
         assertThatThrownBy(() -> generator.generate(tracks, 4)).isInstanceOf(PlaylistTooSmallException.class);
     }
+
+    @Test
+    void shouldKeepArtistAndCoverOfAnswerWhenGeneratingRounds() throws PlaylistTooSmallException {
+        final List<MusicTrack> tracks = IntStream.rangeClosed(1, 4)
+                .mapToObj(i -> new MusicTrack(String.valueOf(i), "Song " + i, "Artist " + i, "cover-" + i + ".jpg", true))
+                .toList();
+
+        final List<GameRound> generated = generator.generate(tracks, 4);
+
+        assertThat(generated).allSatisfy(round -> {
+            assertThat(round.artist()).isEqualTo("Artist " + round.trackId());
+            assertThat(round.cover()).isEqualTo("cover-" + round.trackId() + ".jpg");
+        });
+    }
 }

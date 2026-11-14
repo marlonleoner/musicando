@@ -25,14 +25,16 @@ class DeezerClientResponseTest {
     @Test
     void shouldReadTracksAndArtistWhenDeserializingTracksPage() {
         final String json = """
-                {"data":[{"id":1,"title":"Song (Live)","title_short":"Song","readable":true,"preview":"p.mp3","artist":{"id":5,"name":"Artist"}}],
+                {"data":[{"id":1,"title":"Song (Live)","title_short":"Song","readable":true,"preview":"p.mp3","artist":{"id":5,"name":"Artist"},
+                 "album":{"id":7,"cover_medium":"m.jpg","cover_big":"b.jpg"}}],
                  "total":1,"next":"https://api.deezer.com/next"}
                 """;
 
         final DeezerPageClientResponse<DeezerTrackClientResponse> page = mapper.readValue(json, new TypeReference<>() { });
 
         assertThat(page.data()).containsExactly(
-                new DeezerTrackClientResponse(1L, "Song (Live)", "Song", true, "p.mp3", new DeezerArtistClientResponse("Artist"), null));
+                new DeezerTrackClientResponse(1L, "Song (Live)", "Song", true, "p.mp3", new DeezerArtistClientResponse("Artist"),
+                        new DeezerAlbumClientResponse("m.jpg", "b.jpg"), null));
         assertThat(page.next()).isEqualTo("https://api.deezer.com/next");
         assertThat(page.error()).isNull();
     }
