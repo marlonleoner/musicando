@@ -19,6 +19,7 @@ import com.marlonleoner.musicando.dto.response.RoomResponse;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.mapper.PlayerMapper;
 import com.marlonleoner.musicando.mapper.RoomMapper;
+import com.marlonleoner.musicando.service.game.GameLocks;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
@@ -37,6 +38,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -69,7 +71,7 @@ class RoomAggregationTest {
 
     @BeforeEach
     void setUp() {
-        aggregation = new RoomAggregation(roomService, playerService, matchService, roomMapper, playerMapper, notifier, new RoomProperties(MAX_PLAYERS, 1));
+        aggregation = new RoomAggregation(roomService, playerService, matchService, roomMapper, playerMapper, notifier, new RoomProperties(MAX_PLAYERS, 1), new GameLocks());
     }
 
     @Test
@@ -154,12 +156,23 @@ class RoomAggregationTest {
         final Room room = Fixture.make(Room.class);
         room.setStatus(RoomStatus.WAITING);
         room.setPlayers(new ArrayList<>(Fixture.makeList(Player.class, players)));
+        when(playerService.findByRoom(room.getCode())).thenReturn(room.getPlayers());
 
         return room;
     }
 
     private void assertJoinRejected(final Room room, final String nickname, final Class<? extends Throwable> expected) {
         assertThatThrownBy(() -> aggregation.joinRoom(new JoinRoomRequest(room.getCode(), nickname))).isInstanceOf(expected);
-        verifyNoInteractions(playerService, notifier);
+        verify(playerService, never()).createAndSave(anyString(), any(Room.class));
+        verifyNoInteractions(notifier);
+    }
+
+    @Test
+    void shouldValidateAgainstPlayersReadFromDatabaseWhenRoomListIsOutdated() throws BaseException {
+        final Room room = waitingRoom(0);
+        when(roomService.getOrException(room.getCode())).thenReturn(room);
+        when(playerService.findByRoom(room.getCode())).thenReturn(Fixture.makeList(Player.class, MAX_PLAYERS));
+
+        assertJoinRejected(room, "ANA", RoomFullException.class);
     }
 }

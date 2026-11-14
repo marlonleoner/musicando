@@ -7,10 +7,12 @@ import com.marlonleoner.musicando.domain.exception.NotRoomOwnerException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.repository.PlayerRepository;
+import com.marlonleoner.musicando.service.game.GameLocks;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,6 +36,9 @@ class PlayerServiceTest {
 
     @Mock
     private PlayerRepository repository;
+
+    @Spy
+    private GameLocks locks = new GameLocks();
 
     @InjectMocks
     private PlayerService service;
@@ -232,5 +238,22 @@ class PlayerServiceTest {
         service.applyResults(null, Map.of(), Map.of());
 
         verify(repository, never()).save(any(Player.class));
+    }
+
+    @Test
+    void shouldReadPlayersFromRepositoryWhenFindingByRoom() {
+        final List<Player> players = Fixture.makeList(Player.class, 2);
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(players);
+
+        assertThat(service.findByRoom(CODE)).isEqualTo(players);
+    }
+
+    @Test
+    void shouldAssignOwnerUnderRoomLockWhenEnsuringOwner() {
+        when(repository.findByRoomCodeOrderByCreatedAtAsc(CODE)).thenReturn(List.of());
+
+        service.ensureOwner(CODE);
+
+        verify(locks).execute(eq(CODE), any(Runnable.class));
     }
 }

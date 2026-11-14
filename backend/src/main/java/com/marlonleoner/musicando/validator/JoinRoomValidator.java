@@ -62,11 +62,19 @@ public final class JoinRoomValidator {
      */
     public static void validateRoom(Room room, String nickname, int maxPlayers)
             throws RoomNotJoinableException, RoomFullException, NicknameTakenException {
+        validateRoom(room, room.getPlayers(), nickname, maxPlayers);
+    }
+
+    /**
+     * Mesmas regras, com os jogadores informados à parte (lidos do banco no momento da entrada).
+     */
+    public static void validateRoom(Room room, List<Player> currentPlayers, String nickname, int maxPlayers)
+            throws RoomNotJoinableException, RoomFullException, NicknameTakenException {
         if (!room.isWaiting()) {
             throw new RoomNotJoinableException(room.getCode(), room.getStatus());
         }
 
-        final List<Player> players = Objects.requireNonNullElse(room.getPlayers(), List.of());
+        final List<Player> players = Objects.requireNonNullElse(currentPlayers, List.of());
 
         if (players.size() >= maxPlayers) {
             throw new RoomFullException(room.getCode(), maxPlayers);

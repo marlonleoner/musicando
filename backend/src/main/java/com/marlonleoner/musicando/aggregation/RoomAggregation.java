@@ -11,6 +11,7 @@ import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
 import com.marlonleoner.musicando.dto.response.RoomResponse;
 import com.marlonleoner.musicando.mapper.PlayerMapper;
 import com.marlonleoner.musicando.mapper.RoomMapper;
+import com.marlonleoner.musicando.service.game.GameLocks;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,8 @@ public class RoomAggregation {
     private final RoomStateNotifier notifier;
 
     private final RoomProperties roomProperties;
+
+    private final GameLocks locks;
 
     public List<RoomResponse> getAllRooms() {
         return roomMapper.toResponse(roomService.findAll());
@@ -65,10 +69,16 @@ public class RoomAggregation {
     public JoinRoomResponse joinRoom(JoinRoomRequest params) throws BaseException {
         final String nickname = JoinRoomValidator.normalizeNickname(params.nickname());
         final Room room = roomService.getOrException(params.code());
-        JoinRoomValidator.validateRoom(room, nickname, roomProperties.maxPlayers());
+        final AtomicReference<Player> joined = new AtomicReference<>();
 
-        final Player player = playerService.createAndSave(nickname, room);
-        playerService.ensureOwner(room.getCode());
+        // Sob o lock da sala, duas entradas simultâneas não furam o limite de jogadores nem repetem o apelido.
+        locks.run(room.getCode(), () -> {
+            JoinRoomValidator.validateRoom(room, playerService.findByRoom(room.getCode()), nickname, roomProperties.maxPlayers());
+            joined.set(playerService.createAndSave(nickname, room));
+            playerService.ensureOwner(room.getCode());
+        });
+
+        final Player player = joined.get();
         notifier.broadcast(room.getCode(), RoomStateReason.PLAYER_JOINED, player.getId());
 
         return playerMapper.toJoinResponse(player);

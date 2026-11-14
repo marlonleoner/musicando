@@ -16,6 +16,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -89,5 +90,17 @@ class JoinRoomValidatorTest {
         room.setPlayers(new ArrayList<>(Fixture.makeList(Player.class, players)));
 
         return room;
+    }
+
+    @Test
+    void shouldUseInformedPlayersInsteadOfRoomListWhenValidatingRoom() {
+        final Room room = Fixture.make(Room.class);
+        room.setStatus(RoomStatus.WAITING);
+        room.setPlayers(new ArrayList<>());
+        final Player taken = Fixture.make(Player.class);
+        taken.setNickname("BRUNO");
+
+        assertThatThrownBy(() -> JoinRoomValidator.validateRoom(room, List.of(taken), "BRUNO", MAX_PLAYERS)).isInstanceOf(NicknameTakenException.class);
+        assertThatCode(() -> JoinRoomValidator.validateRoom(room, null, "BRUNO", MAX_PLAYERS)).doesNotThrowAnyException();
     }
 }
