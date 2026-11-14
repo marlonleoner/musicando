@@ -14,3 +14,14 @@
 .animate-fade-in {
   animation: fade-in 0.7s cubic-bezier(0.4,0,0.2,1) both;
 }
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    background: radial-gradient(circle at top, #2b1a47 0%, #140c22 70%);
+    color: white;
+}
