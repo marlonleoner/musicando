@@ -2,6 +2,7 @@ import { Client, type IMessage } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
     ErrorPayload,
+    GameEvent,
     HostSession,
     RoomState,
     RoomStateReason,
@@ -15,11 +16,22 @@ const SESSION_REPLACED_CLOSE_CODE = 4001;
 
 const RECONNECT_DELAY_MS = 3000;
 
+const GAME_EVENTS: ReadonlySet<string> = new Set([
+    "ROUND_COUNTDOWN",
+    "ROUND_STARTED",
+    "ROUND_AUDIO",
+    "ANSWER_RECEIVED",
+    "ROUND_ENDED",
+]);
+
+const isGameEvent = (event: SocketEvent): event is GameEvent => GAME_EVENTS.has(event.type);
+
 export type ConnectionStatus = "connecting" | "connected" | "reconnecting" | "replaced";
 
 interface Options {
     session: HostSession | null;
     onRoomState: (state: RoomState, reason?: RoomStateReason) => void;
+    onGameEvent: (event: GameEvent) => void;
     onCommandError: (error: ErrorPayload) => void;
     onInvalidSession: () => void;
 }
@@ -28,16 +40,16 @@ interface Options {
  * Conexão STOMP do host. Autentica com as credenciais da sala, assina os canais da sala e mantém apenas a foto mais
  * recente da sala (pelo timestamp do evento). Reconecta sozinho em caso de queda.
  */
-export const useHostSocket = ({ session, onRoomState, onCommandError, onInvalidSession }: Options) => {
+export const useHostSocket = ({ session, onRoomState, onGameEvent, onCommandError, onInvalidSession }: Options) => {
     const [status, setStatus] = useState<ConnectionStatus>("connecting");
     const clientRef = useRef<Client | null>(null);
     const lastStateAtRef = useRef<number>(0);
-    const callbacksRef = useRef({ onRoomState, onCommandError, onInvalidSession });
+    const callbacksRef = useRef({ onRoomState, onGameEvent, onCommandError, onInvalidSession });
     const [attempt, setAttempt] = useState(0);
 
     useEffect(() => {
-        callbacksRef.current = { onRoomState, onCommandError, onInvalidSession };
-    }, [onRoomState, onCommandError, onInvalidSession]);
+        callbacksRef.current = { onRoomState, onGameEvent, onCommandError, onInvalidSession };
+    }, [onRoomState, onGameEvent, onCommandError, onInvalidSession]);
 
     useEffect(() => {
         if (!session) {
@@ -57,6 +69,8 @@ export const useHostSocket = ({ session, onRoomState, onCommandError, onInvalidS
 
                 lastStateAtRef.current = at;
                 callbacksRef.current.onRoomState(event.payload, event.reason);
+            } else if (isGameEvent(event)) {
+                callbacksRef.current.onGameEvent(event);
             } else if (event.type === "ERROR") {
                 callbacksRef.current.onCommandError(event.payload);
             }

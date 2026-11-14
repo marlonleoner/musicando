@@ -44,6 +44,7 @@ const MESSAGES: Partial<Record<ErrorCode, string>> = {
     NOT_ENOUGH_PLAYERS: "Ainda não há jogadores suficientes conectados para começar.",
     GAME_ALREADY_STARTED: "A partida já começou.",
     MUSIC_PROVIDER_UNAVAILABLE: "A Deezer não respondeu. Tente novamente em instantes.",
+    ANSWER_NOT_ACCEPTED: "Sua resposta não foi aceita: o tempo da rodada acabou.",
 };
 
 /** Mensagem amigável para erros de comandos enviados pelo socket. */

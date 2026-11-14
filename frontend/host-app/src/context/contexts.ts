@@ -1,10 +1,14 @@
 import { createContext } from "react";
 import type { ConnectionStatus } from "../hooks/useHostSocket";
-import type { HostSession, RoomState } from "../types/protocol";
+import type { HostSession, RoomAudio, RoomState, RoundView } from "../types/protocol";
 
 export interface IGameContext {
     session: HostSession | null;
     room: RoomState | null;
+    /** Rodada atual da partida; nula fora de uma partida. */
+    round: RoundView | null;
+    /** Prévia da música da rodada, recebida só pela TV. */
+    audio: RoomAudio | null;
     connection: ConnectionStatus;
     creatingRoom: boolean;
     createRoom: () => Promise<void>;

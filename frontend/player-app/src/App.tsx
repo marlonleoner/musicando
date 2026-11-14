@@ -1,6 +1,8 @@
 import { Toaster } from "sonner";
 import { PlayerProvider } from "./context/PlayerContext";
 import { usePlayer } from "./hooks/usePlayer";
+import FinalRanking from "./pages/FinalRanking";
+import Game from "./pages/Game";
 import Join from "./pages/Join";
 import Lobby from "./pages/Lobby";
 import StatusScreen from "./pages/StatusScreen";
@@ -34,12 +36,11 @@ function Screen() {
         return <StatusScreen title="Partida pausada" description="Aguardando a TV voltar a se conectar." />;
     }
 
-    return (
-        <StatusScreen
-            title="Prepare-se, a partida vai começar!"
-            description="Fique de olho na TV. As rodadas chegam na próxima fase do projeto."
-        />
-    );
+    if (room.status === "FINISHED") {
+        return <FinalRanking room={room} session={session} />;
+    }
+
+    return <Game room={room} session={session} />;
 }
 
 function App() {
