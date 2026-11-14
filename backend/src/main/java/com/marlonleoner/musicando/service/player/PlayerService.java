@@ -5,6 +5,7 @@ import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.exception.NotRoomOwnerException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.repository.PlayerRepository;
+import com.marlonleoner.musicando.service.game.GameLocks;
 import com.marlonleoner.musicando.util.UUID7;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,12 +15,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @RequiredArgsConstructor
 public class PlayerService {
 
     private final PlayerRepository repository;
+
+    private final GameLocks locks;
 
     private Player save(Player player) {
         player.setUpdatedAt(new Date());
@@ -63,6 +67,20 @@ public class PlayerService {
      * @return {@code true} se o VIP mudou
      */
     public boolean ensureOwner(String roomCode) {
+        final AtomicBoolean changed = new AtomicBoolean(false);
+        locks.execute(roomCode, () -> changed.set(assignOwner(roomCode)));
+
+        return changed.get();
+    }
+
+    /**
+     * Jogadores da sala, lidos do banco (e não da coleção já carregada na sala).
+     */
+    public List<Player> findByRoom(String roomCode) {
+        return repository.findByRoomCodeOrderByCreatedAtAsc(roomCode);
+    }
+
+    private boolean assignOwner(String roomCode) {
         final List<Player> players = repository.findByRoomCodeOrderByCreatedAtAsc(roomCode);
         final Optional<Player> owner = players.stream().filter(Player::isOwner).findFirst();
 

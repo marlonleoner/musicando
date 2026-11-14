@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -21,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true, exclude = "room")
 @SuperBuilder
 @Entity
-@Table(name = "tb_player")
+@Table(name = "tb_player", uniqueConstraints = @UniqueConstraint(name = "uk_player_room_nickname", columnNames = {"room_id", "nickname"}))
 public class Player extends BaseEntity {
 
     private String sessionId;
