@@ -33,6 +33,7 @@ import com.marlonleoner.musicando.util.LogSanitizer;
 import com.marlonleoner.musicando.util.ScoreCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -40,6 +41,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Ciclo das rodadas de uma partida, controlado pelo servidor:
@@ -195,6 +197,26 @@ public class GameEngine {
     }
 
     /**
+     * Prepara a partida para ser retomada depois de um reinício do backend: o timer foi perdido, então a etapa atual
+     * fica pausada com o tempo que faltava e volta a correr quando a TV reconectar.
+     *
+     * @return {@code true} se havia uma partida em andamento para retomar
+     */
+    public boolean recover(String roomCode) {
+        final AtomicBoolean recovered = new AtomicBoolean(false);
+        locks.execute(roomCode, () -> gameStateService.find(roomCode).filter(GameState::running).ifPresent(state -> {
+            if (!state.paused()) {
+                state.setPausedRemainingMs(Math.max(0, state.getPhaseEndsAt() - now()));
+                gameStateService.save(roomCode, state);
+            }
+
+            recovered.set(true);
+        }));
+
+        return recovered.get();
+    }
+
+    /**
      * Descarta a partida da sala (sala encerrada ou nova partida).
      */
     public void stop(String roomCode) {
@@ -221,7 +243,7 @@ public class GameEngine {
                     default -> log.debug("Nothing to advance in room {}", LogSanitizer.sanitize(roomCode));
                 }
             });
-        } catch (BaseException ex) {
+        } catch (BaseException | DataAccessException ex) {
             log.error("Could not advance the game in room {}: {}", LogSanitizer.sanitize(roomCode), LogSanitizer.sanitize(ex.getMessage()));
         }
     }

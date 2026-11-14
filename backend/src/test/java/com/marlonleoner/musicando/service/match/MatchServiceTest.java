@@ -194,4 +194,14 @@ class MatchServiceTest {
 
         verifyNoInteractions(repository);
     }
+
+    @Test
+    void shouldKeepEndTimeWhenMatchIsAlreadyFinished() {
+        final Match match = Fixture.make(Match.class);
+        match.setStatus(MatchStatus.FINISHED);
+
+        service.finish(match);
+
+        verifyNoInteractions(repository);
+    }
 }

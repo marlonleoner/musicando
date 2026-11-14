@@ -170,6 +170,38 @@ public class RoomService {
         save(room);
     }
 
+    /**
+     * Partidas que estavam em andamento ou pausadas, para serem retomadas depois de um reinício.
+     */
+    public List<Room> findInterrupted() {
+        return repository.findByStatusIn(List.of(RoomStatus.IN_PROGRESS, RoomStatus.PAUSED));
+    }
+
+    /**
+     * Salas ainda abertas, sem a TV conectada e sem alterações desde o limite.
+     */
+    public List<Room> findAbandoned(Date limit) {
+        return repository.findByStatusNotAndConnectedFalseAndUpdatedAtBefore(RoomStatus.CLOSED, limit);
+    }
+
+    public List<Room> findClosedBefore(Date limit) {
+        return repository.findByStatusAndUpdatedAtBefore(RoomStatus.CLOSED, limit);
+    }
+
+    /**
+     * Apaga a sala com seus jogadores e partidas.
+     */
+    public void delete(Room room) {
+        room.setCurrentMatch(null);
+        repository.saveAndFlush(room);
+        repository.delete(room);
+    }
+
+    public void pause(Room room) {
+        room.setStatus(RoomStatus.PAUSED);
+        save(room);
+    }
+
     public void finish(Room room) {
         room.setStatus(RoomStatus.FINISHED);
         save(room);

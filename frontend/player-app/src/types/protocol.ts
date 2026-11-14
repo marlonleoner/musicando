@@ -21,6 +21,7 @@ export type ErrorCode =
     | "GAME_ALREADY_STARTED"
     | "MUSIC_PROVIDER_UNAVAILABLE"
     | "ANSWER_NOT_ACCEPTED"
+    | "SERVICE_UNAVAILABLE"
     | "INTERNAL_ERROR";
 
 export type RoomStateReasonType =

@@ -1,6 +1,5 @@
 package com.marlonleoner.musicando.handler.socket.command;
 
-import com.marlonleoner.musicando.domain.Match;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.ErrorCode;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
@@ -11,8 +10,7 @@ import com.marlonleoner.musicando.domain.exception.SocketCommandException;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.fixture.Fixture;
-import com.marlonleoner.musicando.service.game.GameEngine;
-import com.marlonleoner.musicando.service.match.MatchService;
+import com.marlonleoner.musicando.service.game.LobbyService;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
@@ -42,10 +40,7 @@ class PlayAgainCommandHandlerTest {
     private RoomService roomService;
 
     @Mock
-    private MatchService matchService;
-
-    @Mock
-    private GameEngine gameEngine;
+    private LobbyService lobbyService;
 
     @Mock
     private RoomStateNotifier notifier;
@@ -62,19 +57,13 @@ class PlayAgainCommandHandlerTest {
     }
 
     @Test
-    void shouldReopenLobbyWithNewMatchAndZeroedScoresWhenGameIsFinished() throws BaseException {
+    void shouldSendEveryoneBackToLobbyWhenGameIsFinished() throws BaseException {
         final Room room = room(RoomStatus.FINISHED);
-        final Match previous = room.getCurrentMatch();
-        final Match next = Fixture.make(Match.class);
-        when(matchService.createNext(room, previous)).thenReturn(next);
 
         handler.handle(PRINCIPAL, null);
 
-        final InOrder order = inOrder(gameEngine, roomService, playerService, notifier);
-        order.verify(gameEngine).stop("ABC123");
-        order.verify(roomService).attachMatch(room, next);
-        order.verify(playerService).resetResults(room.getPlayers());
-        order.verify(roomService).reopen(room);
+        final InOrder order = inOrder(lobbyService, notifier);
+        order.verify(lobbyService).backToLobby(room);
         order.verify(notifier).broadcast("ABC123", RoomStateReason.PLAY_AGAIN, "player-1");
     }
 
@@ -87,7 +76,7 @@ class PlayAgainCommandHandlerTest {
                 .isInstanceOf(SocketCommandException.class)
                 .extracting(ex -> ((SocketCommandException) ex).getErrorCode())
                 .isEqualTo(ErrorCode.INVALID_COMMAND);
-        verifyNoInteractions(gameEngine, matchService, notifier);
+        verifyNoInteractions(lobbyService, notifier);
     }
 
     @Test
@@ -95,6 +84,6 @@ class PlayAgainCommandHandlerTest {
         when(playerService.getOwnerOrException("player-1")).thenThrow(new NotRoomOwnerException());
 
         assertThatThrownBy(() -> handler.handle(PRINCIPAL, null)).isInstanceOf(NotRoomOwnerException.class);
-        verifyNoInteractions(roomService, gameEngine, matchService, notifier);
+        verifyNoInteractions(roomService, lobbyService, notifier);
     }
 }

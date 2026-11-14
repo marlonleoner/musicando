@@ -5,6 +5,8 @@ import com.marlonleoner.musicando.domain.exception.BaseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,5 +42,13 @@ class ExceptionHandlersTest {
         final Exception exception = new IllegalStateException("database password is 123");
 
         assertThat(handlers.handleGenericException(exception).getBody().message()).doesNotContain("password");
+    }
+
+    @Test
+    void shouldReturnServiceUnavailableWhenInfrastructureIsDown() {
+        final DataAccessException exception = new DataAccessResourceFailureException("Unable to connect to Redis");
+
+        assertThat(handlers.handleDataAccessException(exception).getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(handlers.handleDataAccessException(exception).getBody().code()).isEqualTo(ErrorCode.SERVICE_UNAVAILABLE);
     }
 }

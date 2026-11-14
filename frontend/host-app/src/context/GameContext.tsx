@@ -12,7 +12,7 @@ import type {
 } from "../types/protocol";
 import type { Element } from "../types/types";
 import { GameContext, type IGameContext } from "./contexts";
-import { apiErrorMessage, createRoom as createRoomRequest } from "../utils/api.utils";
+import { apiErrorMessage, commandErrorMessage, createRoom as createRoomRequest } from "../utils/api.utils";
 import { applyGameEvent } from "../utils/round.utils";
 import { clearHostSession, loadHostSession, saveHostSession } from "../utils/storage.utils";
 
@@ -75,7 +75,7 @@ export const GameProvider = ({ children }: Element) => {
         setRound((current) => applyGameEvent(current, event));
     }, []);
 
-    const handleCommandError = useCallback((error: ErrorPayload) => toast.error(error.message), []);
+    const handleCommandError = useCallback((error: ErrorPayload) => toast.error(commandErrorMessage(error)), []);
 
     const handleInvalidSession = useCallback(() => {
         toast.error("Esta sala não existe mais. Crie uma nova sala.");

@@ -11,11 +11,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -223,5 +226,54 @@ class RoomServiceTest {
 
         verify(repository).save(room);
         assertThat(room.getStatus()).isEqualTo(RoomStatus.WAITING);
+    }
+
+    @Test
+    void shouldLookForInProgressAndPausedRoomsWhenFindingInterruptedGames() {
+        final List<Room> rooms = List.of(Fixture.make(Room.class));
+        when(repository.findByStatusIn(List.of(RoomStatus.IN_PROGRESS, RoomStatus.PAUSED))).thenReturn(rooms);
+
+        assertThat(service.findInterrupted()).isEqualTo(rooms);
+    }
+
+    @Test
+    void shouldLookForOpenRoomsWithoutHostWhenFindingAbandonedRooms() {
+        final Date limit = new Date();
+        final List<Room> rooms = List.of(Fixture.make(Room.class));
+        when(repository.findByStatusNotAndConnectedFalseAndUpdatedAtBefore(RoomStatus.CLOSED, limit)).thenReturn(rooms);
+
+        assertThat(service.findAbandoned(limit)).isEqualTo(rooms);
+    }
+
+    @Test
+    void shouldLookForClosedRoomsWhenFindingClosedBefore() {
+        final Date limit = new Date();
+        final List<Room> rooms = List.of(Fixture.make(Room.class));
+        when(repository.findByStatusAndUpdatedAtBefore(RoomStatus.CLOSED, limit)).thenReturn(rooms);
+
+        assertThat(service.findClosedBefore(limit)).isEqualTo(rooms);
+    }
+
+    @Test
+    void shouldDetachCurrentMatchBeforeDeletingRoom() {
+        final Room room = Fixture.make(Room.class);
+
+        service.delete(room);
+
+        final InOrder order = inOrder(repository);
+        order.verify(repository).saveAndFlush(room);
+        order.verify(repository).delete(room);
+        assertThat(room.getCurrentMatch()).isNull();
+    }
+
+    @Test
+    void shouldPauseRoomWhenPausing() {
+        final Room room = Fixture.make(Room.class);
+        room.setStatus(RoomStatus.IN_PROGRESS);
+
+        service.pause(room);
+
+        verify(repository).save(room);
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.PAUSED);
     }
 }
