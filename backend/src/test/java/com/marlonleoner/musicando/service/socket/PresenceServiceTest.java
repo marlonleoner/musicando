@@ -8,6 +8,7 @@ import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.handler.socket.SocketSessionRegistry;
+import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
@@ -45,6 +46,9 @@ class PresenceServiceTest {
     @Mock
     private SocketSessionRegistry sessionRegistry;
 
+    @Mock
+    private GameEngine gameEngine;
+
     @InjectMocks
     private PresenceService service;
 
@@ -57,6 +61,7 @@ class PresenceServiceTest {
         verify(roomService).onConnect(room, SESSION_ID);
         verify(matchService).onConnect(room.getCurrentMatch());
         verify(notifier).broadcast(room.getCode(), RoomStateReason.HOST_CONNECTED, room.getId());
+        verify(gameEngine).resume(room.getCode());
         verifyNoInteractions(sessionRegistry);
     }
 
@@ -78,6 +83,7 @@ class PresenceServiceTest {
 
         verify(roomService).onDisconnect(room);
         verify(matchService).onDisconnect(room.getCurrentMatch());
+        verify(gameEngine).pause(room.getCode());
         verify(notifier).broadcast(room.getCode(), RoomStateReason.HOST_DISCONNECTED, room.getId());
     }
 
@@ -88,7 +94,7 @@ class PresenceServiceTest {
         service.onDisconnected(hostOf(room), "session-old");
 
         verify(roomService, never()).onDisconnect(any());
-        verifyNoInteractions(matchService, notifier);
+        verifyNoInteractions(matchService, notifier, gameEngine);
     }
 
     @Test

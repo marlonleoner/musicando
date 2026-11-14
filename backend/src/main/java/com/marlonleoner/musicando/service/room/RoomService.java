@@ -169,4 +169,17 @@ public class RoomService {
         room.setStatus(RoomStatus.IN_PROGRESS);
         save(room);
     }
+
+    public void finish(Room room) {
+        room.setStatus(RoomStatus.FINISHED);
+        save(room);
+    }
+
+    /**
+     * Volta a sala para o lobby depois de uma partida encerrada ("jogar novamente").
+     */
+    public void reopen(Room room) {
+        room.setStatus(RoomStatus.WAITING);
+        save(room);
+    }
 }

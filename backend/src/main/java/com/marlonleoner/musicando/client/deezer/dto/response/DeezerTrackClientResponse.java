@@ -8,5 +8,6 @@ public record DeezerTrackClientResponse(
         @JsonProperty("title_short") String titleShort,
         Boolean readable,
         String preview,
-        DeezerArtistClientResponse artist) {
+        DeezerArtistClientResponse artist,
+        DeezerErrorClientResponse error) {
 }

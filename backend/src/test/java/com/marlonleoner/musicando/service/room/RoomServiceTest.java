@@ -202,4 +202,26 @@ class RoomServiceTest {
         verify(repository).save(room);
         assertThat(room.getStatus()).isEqualTo(RoomStatus.IN_PROGRESS);
     }
+
+    @Test
+    void shouldFinishRoomWhenFinishing() {
+        final Room room = Fixture.make(Room.class);
+        room.setStatus(RoomStatus.IN_PROGRESS);
+
+        service.finish(room);
+
+        verify(repository).save(room);
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
+    }
+
+    @Test
+    void shouldPutRoomBackToWaitingWhenReopening() {
+        final Room room = Fixture.make(Room.class);
+        room.setStatus(RoomStatus.FINISHED);
+
+        service.reopen(room);
+
+        verify(repository).save(room);
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.WAITING);
+    }
 }

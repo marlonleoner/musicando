@@ -4,5 +4,10 @@ public enum SocketEventType {
 
     ROOM_STATE,
     KICKED,
-    ERROR
+    ERROR,
+    ROUND_COUNTDOWN,
+    ROUND_STARTED,
+    ROUND_AUDIO,
+    ANSWER_RECEIVED,
+    ROUND_ENDED
 }

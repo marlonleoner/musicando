@@ -4,6 +4,7 @@ import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
+import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.room.RoomService;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,12 @@ public class CloseRoomCommandHandler implements SocketCommandHandler {
 
     private final RoomStateNotifier notifier;
 
+    private final GameEngine gameEngine;
+
     @Override
     public void handle(SocketPrincipal principal, JsonNode payload) throws BaseException {
         final Room room = roomService.getOrException(principal.roomCode());
+        gameEngine.stop(principal.roomCode());
         roomService.close(room);
         notifier.broadcast(principal.roomCode(), RoomStateReason.ROOM_CLOSED, principal.participantId());
     }

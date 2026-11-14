@@ -12,7 +12,7 @@ import com.marlonleoner.musicando.domain.music.GameRound;
 import com.marlonleoner.musicando.domain.music.GameState;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
-import com.marlonleoner.musicando.service.game.GameStateService;
+import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.game.RoundGenerator;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.music.MusicService;
@@ -23,12 +23,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * {@code START_GAME} (somente VIP): valida a configuração, sorteia as rodadas a partir da playlist, guarda o estado da
- * partida no Redis e coloca a sala em andamento. Todos recebem o {@code ROOM_STATE} com o motivo {@code GAME_STARTED}.
+ * {@code START_GAME} (somente VIP): valida a configuração, sorteia as rodadas a partir da playlist e coloca a sala em
+ * andamento. Todos recebem o {@code ROOM_STATE} com o motivo {@code GAME_STARTED} e, em seguida, a contagem da primeira
+ * rodada.
  */
 @Component
 @RequiredArgsConstructor
@@ -44,7 +46,7 @@ public class StartGameCommandHandler implements SocketCommandHandler {
 
     private final RoundGenerator roundGenerator;
 
-    private final GameStateService gameStateService;
+    private final GameEngine gameEngine;
 
     private final RoomStateNotifier notifier;
 
@@ -72,9 +74,14 @@ public class StartGameCommandHandler implements SocketCommandHandler {
         }
 
         final List<GameRound> rounds = roundGenerator.generate(musicService.playlistTracks(match.getPlaylistId()), match.getRounds());
-        gameStateService.save(room.getCode(), new GameState(match.getId(), match.getRoundDuration(), rounds, 0));
+        final GameState state = GameState.builder()
+                .matchId(match.getId())
+                .roundDuration(match.getRoundDuration())
+                .rounds(new ArrayList<>(rounds))
+                .build();
         matchService.start(match);
         roomService.start(room);
         notifier.broadcast(principal.roomCode(), RoomStateReason.GAME_STARTED, principal.participantId());
+        gameEngine.start(principal.roomCode(), state);
     }
 }

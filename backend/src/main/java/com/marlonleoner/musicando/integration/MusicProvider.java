@@ -17,4 +17,9 @@ public interface MusicProvider {
     Optional<MusicPlaylist> findPlaylist(String id) throws MusicProviderException;
 
     List<MusicTrack> playlistTracks(String playlistId) throws MusicProviderException;
+
+    /**
+     * Prévia atual da música. Os links das prévias expiram, por isso são buscados na hora de tocar.
+     */
+    Optional<String> findPreview(String trackId) throws MusicProviderException;
 }

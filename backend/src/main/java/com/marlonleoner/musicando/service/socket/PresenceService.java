@@ -6,6 +6,7 @@ import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.handler.socket.SocketSessionRegistry;
+import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
@@ -36,6 +37,8 @@ public class PresenceService {
 
     private final SocketSessionRegistry sessionRegistry;
 
+    private final GameEngine gameEngine;
+
     public void onConnected(SocketPrincipal principal, String sessionId) throws ObjectNotFoundException {
         if (principal.isHost()) {
             final Room room = roomService.getOrException(principal.roomCode());
@@ -43,6 +46,7 @@ public class PresenceService {
             roomService.onConnect(room, sessionId);
             matchService.onConnect(room.getCurrentMatch());
             notifier.broadcast(principal.roomCode(), RoomStateReason.HOST_CONNECTED, principal.participantId());
+            gameEngine.resume(principal.roomCode());
 
             return;
         }
@@ -69,6 +73,7 @@ public class PresenceService {
 
             roomService.onDisconnect(room);
             matchService.onDisconnect(room.getCurrentMatch());
+            gameEngine.pause(principal.roomCode());
             notifier.broadcast(principal.roomCode(), RoomStateReason.HOST_DISCONNECTED, principal.participantId());
 
             return;

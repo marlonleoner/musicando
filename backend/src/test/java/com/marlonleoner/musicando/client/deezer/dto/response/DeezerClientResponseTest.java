@@ -32,7 +32,7 @@ class DeezerClientResponseTest {
         final DeezerPageClientResponse<DeezerTrackClientResponse> page = mapper.readValue(json, new TypeReference<>() { });
 
         assertThat(page.data()).containsExactly(
-                new DeezerTrackClientResponse(1L, "Song (Live)", "Song", true, "p.mp3", new DeezerArtistClientResponse("Artist")));
+                new DeezerTrackClientResponse(1L, "Song (Live)", "Song", true, "p.mp3", new DeezerArtistClientResponse("Artist"), null));
         assertThat(page.next()).isEqualTo("https://api.deezer.com/next");
         assertThat(page.error()).isNull();
     }
