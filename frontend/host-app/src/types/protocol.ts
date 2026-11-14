@@ -14,6 +14,12 @@ export type ErrorCode =
     | "INVALID_NICKNAME"
     | "NICKNAME_TAKEN"
     | "INVALID_COMMAND"
+    | "INVALID_SETTINGS"
+    | "PLAYLIST_NOT_FOUND"
+    | "PLAYLIST_TOO_SMALL"
+    | "NOT_ENOUGH_PLAYERS"
+    | "GAME_ALREADY_STARTED"
+    | "MUSIC_PROVIDER_UNAVAILABLE"
     | "INTERNAL_ERROR";
 
 export type RoomStateReasonType =
@@ -25,7 +31,9 @@ export type RoomStateReasonType =
     | "PLAYER_DISCONNECTED"
     | "PLAYER_LEFT"
     | "PLAYER_KICKED"
-    | "ROOM_CLOSED";
+    | "ROOM_CLOSED"
+    | "SETTINGS_UPDATED"
+    | "GAME_STARTED";
 
 export interface Player {
     id: string;
@@ -35,11 +43,26 @@ export interface Player {
     connected: boolean;
 }
 
+export interface Playlist {
+    id: string;
+    name: string;
+    cover: string | null;
+    trackCount: number;
+}
+
+/** Configuração da partida escolhida pelo VIP. `playlist` fica nulo até a primeira escolha. */
+export interface MatchSettings {
+    playlist: Playlist | null;
+    rounds: number;
+    roundDuration: number;
+}
+
 export interface RoomState {
     code: string;
     status: RoomStatus;
     connected: boolean;
     players: Player[];
+    settings: MatchSettings | null;
 }
 
 export interface RoomStateReason {
