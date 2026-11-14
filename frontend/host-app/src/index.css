@@ -25,3 +25,52 @@ body {
     background: radial-gradient(circle at top, #2b1a47 0%, #140c22 70%);
     color: white;
 }
+
+/* Animações das telas da partida */
+@keyframes pop {
+    0% { opacity: 0; transform: scale(0.4); }
+    60% { opacity: 1; transform: scale(1.15); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-pop {
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: none; }
+}
+
+.animate-rise {
+    animation: rise 0.5s ease-out both;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
+.animate-shake {
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes confetti-fall {
+    from { transform: translateY(-10vh) rotate(0deg); }
+    to { transform: translateY(110vh) rotate(720deg); }
+}
+
+.animate-confetti {
+    animation: confetti-fall linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-pop,
+    .animate-rise,
+    .animate-shake,
+    .animate-confetti,
+    .animate-bounce {
+        animation: none !important;
+    }
+}

@@ -3,7 +3,7 @@ import TimeBar from "../components/TimeBar";
 import { useCountdown } from "../hooks/useCountdown";
 import { usePlayer } from "../hooks/usePlayer";
 import type { PlayerSession, RoomState, RoundView } from "../types/protocol";
-import { formatPoints, ordinal } from "../utils/round.utils";
+import { formatPoints, ordinal, positionChange } from "../utils/round.utils";
 
 interface IGame {
     room: RoomState;
@@ -48,7 +48,10 @@ function RoundContent({ room, session, round, remainingMs }: IRoundContent) {
             <div className="flex grow flex-col items-center justify-center gap-4 text-center">
                 <span className="text-2xl font-bold">Prepare-se!</span>
                 {round && (
-                    <span className="text-8xl font-bold text-amber-300">
+                    <span
+                        key={`${round.round}-${Math.ceil(remainingMs / 1000)}`}
+                        className="animate-pop text-8xl font-bold text-amber-300"
+                    >
                         {Math.max(1, Math.ceil(remainingMs / 1000))}
                     </span>
                 )}
@@ -98,11 +101,17 @@ function RoundContent({ room, session, round, remainingMs }: IRoundContent) {
     const mine = ended.results.find((result) => result.playerId === session.playerId);
     const position = ended.scoreboard.findIndex((score) => score.playerId === session.playerId);
     const myScore = position >= 0 ? ended.scoreboard[position].score : 0;
+    const change =
+        round.previousScoreboard.length > 0
+            ? positionChange(round.previousScoreboard, ended.scoreboard, session.playerId)
+            : 0;
 
     return (
         <div className="flex grow flex-col gap-5">
             <div
-                className={`flex flex-col items-center gap-1 rounded-2xl p-5 text-center ${mine?.correct ? "bg-emerald-500" : "bg-white/10"}`}
+                className={`flex flex-col items-center gap-1 rounded-2xl p-5 text-center ${
+                    mine?.correct ? "animate-pop bg-emerald-500" : "animate-shake bg-white/10"
+                }`}
             >
                 <span className="text-2xl font-bold">
                     {mine?.correct ? "Você acertou!" : mine?.answered ? "Não foi dessa vez" : "Tempo esgotado"}
@@ -110,9 +119,15 @@ function RoundContent({ room, session, round, remainingMs }: IRoundContent) {
                 {mine?.correct && <span className="text-3xl font-bold">+{formatPoints(mine.points)}</span>}
             </div>
 
-            <div className="flex flex-col items-center gap-1 text-center">
-                <span className="text-sm uppercase text-white/60">A resposta era</span>
-                <span className="text-xl font-bold text-amber-300">{ended.answer}</span>
+            <div className="animate-rise flex items-center gap-4">
+                {ended.cover && (
+                    <img src={ended.cover} alt="" className="aspect-square w-20 shrink-0 rounded-xl object-cover" />
+                )}
+                <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="text-sm uppercase text-white/60">A resposta era</span>
+                    <span className="text-xl font-bold leading-tight text-amber-300">{ended.answer}</span>
+                    {ended.artist && <span className="truncate text-white/70">{ended.artist}</span>}
+                </div>
             </div>
 
             {round.options.length > 0 && (
@@ -138,6 +153,11 @@ function RoundContent({ room, session, round, remainingMs }: IRoundContent) {
                 <p className="mt-auto text-center text-white/80">
                     Você está em <strong>{ordinal(position + 1)}</strong> lugar com{" "}
                     <strong>{formatPoints(myScore)}</strong> pontos
+                    {change !== 0 && (
+                        <span className={`ml-2 font-bold ${change > 0 ? "text-emerald-400" : "text-red-400"}`}>
+                            {change > 0 ? `▲${change}` : `▼${-change}`}
+                        </span>
+                    )}
                 </p>
             )}
         </div>

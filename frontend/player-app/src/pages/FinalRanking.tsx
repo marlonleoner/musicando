@@ -26,7 +26,9 @@ export default function FinalRanking({ room, session }: IFinalRanking) {
                     <span className="text-sm uppercase text-white/60">Fim de jogo</span>
                     {me && (
                         <>
-                            <span className="text-6xl font-bold text-amber-300">{ordinal(position + 1)}</span>
+                            <span className="animate-pop text-6xl font-bold text-amber-300">
+                                {ordinal(position + 1)}
+                            </span>
                             <span className="text-lg">
                                 {formatPoints(me.score)} pontos · {me.roundsWon} acertos
                             </span>

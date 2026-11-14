@@ -34,7 +34,7 @@ export default function Lobby({ room }: ILobby) {
                 <section className="flex flex-col items-center gap-6">
                     <div className="flex flex-col items-center">
                         <span className="text-lg uppercase text-white/60">Código da sala</span>
-                        <span className="text-7xl text-white">
+                        <span className="text-7xl text-white 2xl:text-9xl">
                             <GameCode code={room.code} />
                         </span>
                     </div>
