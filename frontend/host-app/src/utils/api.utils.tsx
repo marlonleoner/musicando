@@ -18,6 +18,7 @@ export const createRoom = async (): Promise<HostSession> => {
 
 const MESSAGES: Partial<Record<ErrorCode, string>> = {
     SERVICE_UNAVAILABLE: "O servidor está temporariamente indisponível. Tente novamente em instantes.",
+    RATE_LIMITED: "Muitas tentativas em pouco tempo. Aguarde um instante e tente de novo.",
 };
 
 /** Mensagem amigável para erros de comandos enviados pelo socket. */

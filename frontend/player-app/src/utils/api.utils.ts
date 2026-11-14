@@ -46,6 +46,7 @@ const MESSAGES: Partial<Record<ErrorCode, string>> = {
     MUSIC_PROVIDER_UNAVAILABLE: "A Deezer não respondeu. Tente novamente em instantes.",
     ANSWER_NOT_ACCEPTED: "Sua resposta não foi aceita: o tempo da rodada acabou.",
     SERVICE_UNAVAILABLE: "O servidor está temporariamente indisponível. Tente novamente em instantes.",
+    RATE_LIMITED: "Muitas tentativas em pouco tempo. Aguarde um instante e tente de novo.",
 };
 
 /** Mensagem amigável para erros de comandos enviados pelo socket. */
