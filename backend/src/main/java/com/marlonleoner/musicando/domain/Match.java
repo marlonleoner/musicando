@@ -1,7 +1,6 @@
 package com.marlonleoner.musicando.domain;
 
 import com.marlonleoner.musicando.domain.enums.MatchStatus;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,14 +32,17 @@ public class Match extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
 
-    @Column(nullable = true)
-    private String playlist;
+    private String playlistId;
 
-    @Column(nullable = true)
-    private Integer amount;
+    private String playlistName;
 
-    @Column(nullable = true)
-    private Integer duration;
+    private String playlistCover;
+
+    private Integer playlistTrackCount;
+
+    private Integer rounds;
+
+    private Integer roundDuration;
 
     private Date endTime;
 
@@ -58,5 +60,9 @@ public class Match extends BaseEntity {
 
     public boolean isInProgress() {
         return isStatus(MatchStatus.IN_PROGRESS);
+    }
+
+    public boolean hasPlaylist() {
+        return Objects.nonNull(playlistId);
     }
 }

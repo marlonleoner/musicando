@@ -11,6 +11,7 @@ import com.marlonleoner.musicando.dto.response.RoomCreatedResponse;
 import com.marlonleoner.musicando.dto.response.RoomResponse;
 import com.marlonleoner.musicando.mapper.PlayerMapper;
 import com.marlonleoner.musicando.mapper.RoomMapper;
+import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
@@ -28,6 +29,8 @@ public class RoomAggregation {
 
     private final PlayerService playerService;
 
+    private final MatchService matchService;
+
     private final RoomMapper roomMapper;
 
     private final PlayerMapper playerMapper;
@@ -40,8 +43,14 @@ public class RoomAggregation {
         return roomMapper.toResponse(roomService.findAll());
     }
 
+    /**
+     * Cria a sala e a sua partida, que aguarda a configuração do VIP.
+     */
     public RoomCreatedResponse createRoom() {
-        return roomMapper.toCreatedResponse(roomService.createAndSave());
+        final Room room = roomService.createAndSave();
+        roomService.attachMatch(room, matchService.createFor(room));
+
+        return roomMapper.toCreatedResponse(room);
     }
 
     /**

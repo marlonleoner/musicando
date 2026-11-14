@@ -1,5 +1,6 @@
 package com.marlonleoner.musicando.service.room;
 
+import com.marlonleoner.musicando.domain.Match;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
@@ -178,5 +179,27 @@ class RoomServiceTest {
         verify(repository).save(captor.capture());
 
         return captor.getValue();
+    }
+
+    @Test
+    void shouldSetCurrentMatchWhenAttachingMatch() {
+        final Room room = Fixture.make(Room.class);
+        final Match match = Fixture.make(Match.class);
+
+        service.attachMatch(room, match);
+
+        verify(repository).save(room);
+        assertThat(room.getCurrentMatch()).isEqualTo(match);
+    }
+
+    @Test
+    void shouldPutRoomInProgressWhenStarting() {
+        final Room room = Fixture.make(Room.class);
+        room.setStatus(RoomStatus.WAITING);
+
+        service.start(room);
+
+        verify(repository).save(room);
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.IN_PROGRESS);
     }
 }

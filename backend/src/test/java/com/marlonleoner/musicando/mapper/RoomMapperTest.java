@@ -23,6 +23,7 @@ class RoomMapperTest {
     void setUp() {
         mapper = new RoomMapperImpl();
         ReflectionTestUtils.setField(mapper, "playerMapper", new PlayerMapperImpl());
+        ReflectionTestUtils.setField(mapper, "matchMapper", new MatchMapperImpl());
     }
 
     @Test
@@ -85,5 +86,24 @@ class RoomMapperTest {
         assertThat(mapper.toResponse((List<Room>) null)).isNull();
         assertThat(mapper.toCreatedResponse(null)).isNull();
         assertThat(mapper.toStateBroadcast(null)).isNull();
+    }
+
+    @Test
+    void shouldMapSettingsFromCurrentMatchWhenMappingRoomToStateBroadcast() {
+        final Room room = Fixture.make(Room.class);
+
+        final RoomStateBroadcast broadcast = mapper.toStateBroadcast(room);
+
+        assertThat(broadcast.settings().rounds()).isEqualTo(room.getCurrentMatch().getRounds());
+        assertThat(broadcast.settings().roundDuration()).isEqualTo(room.getCurrentMatch().getRoundDuration());
+        assertThat(broadcast.settings().playlist().id()).isEqualTo(room.getCurrentMatch().getPlaylistId());
+    }
+
+    @Test
+    void shouldReturnNullSettingsWhenRoomHasNoMatch() {
+        final Room room = Fixture.make(Room.class);
+        room.setCurrentMatch(null);
+
+        assertThat(mapper.toStateBroadcast(room).settings()).isNull();
     }
 }
