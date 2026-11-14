@@ -324,8 +324,10 @@ public class GameEngine {
                 .sorted(Comparator.comparing(ScoreResponse::score).reversed().thenComparing(ScoreResponse::nickname))
                 .toList();
 
-        return new RoundEndedBroadcast(state.getCurrentRound() + 1, state.totalRounds(), state.round().answer(), state.lastRound(), remaining,
-                fastest, results, scoreboard);
+        final GameRound round = state.round();
+
+        return new RoundEndedBroadcast(state.getCurrentRound() + 1, state.totalRounds(), round.answer(), round.artist(), round.cover(),
+                state.lastRound(), remaining, fastest, results, scoreboard);
     }
 
     private RoundResultResponse result(Player player, GameState state) {

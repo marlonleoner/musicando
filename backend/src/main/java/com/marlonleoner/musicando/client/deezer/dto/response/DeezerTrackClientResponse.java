@@ -9,5 +9,6 @@ public record DeezerTrackClientResponse(
         Boolean readable,
         String preview,
         DeezerArtistClientResponse artist,
+        DeezerAlbumClientResponse album,
         DeezerErrorClientResponse error) {
 }

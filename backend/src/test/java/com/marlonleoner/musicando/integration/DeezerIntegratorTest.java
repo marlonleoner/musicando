@@ -1,6 +1,7 @@
 package com.marlonleoner.musicando.integration;
 
 import com.marlonleoner.musicando.client.deezer.DeezerClient;
+import com.marlonleoner.musicando.client.deezer.dto.response.DeezerAlbumClientResponse;
 import com.marlonleoner.musicando.client.deezer.dto.response.DeezerArtistClientResponse;
 import com.marlonleoner.musicando.client.deezer.dto.response.DeezerErrorClientResponse;
 import com.marlonleoner.musicando.client.deezer.dto.response.DeezerPageClientResponse;
@@ -56,7 +57,7 @@ class DeezerIntegratorTest {
     }
 
     private static DeezerTrackClientResponse track(final long id) {
-        return new DeezerTrackClientResponse(id, "Song " + id, null, true, "preview.mp3", new DeezerArtistClientResponse("Artist"), null);
+        return new DeezerTrackClientResponse(id, "Song " + id, null, true, "preview.mp3", new DeezerArtistClientResponse("Artist"), null, null);
     }
 
     private static DeezerPageClientResponse<DeezerTrackClientResponse> tracksPage(final int from, final int to, final String next) {
@@ -173,7 +174,7 @@ class DeezerIntegratorTest {
     })
     void shouldMapTitleAndPlayableWhenReadingTracks(final String title, final String titleShort, final Boolean readable, final String preview,
                                                     final String expectedTitle, final boolean expectedPlayable) throws BaseException {
-        final DeezerTrackClientResponse track = new DeezerTrackClientResponse(1L, title, titleShort, readable, preview, null, null);
+        final DeezerTrackClientResponse track = new DeezerTrackClientResponse(1L, title, titleShort, readable, preview, null, null, null);
         when(client.playlistTracks(PLAYLIST_ID, 0, 100)).thenReturn(new DeezerPageClientResponse<>(List.of(track), 1, null, null));
 
         assertThat(integrator.playlistTracks(PLAYLIST_ID)).containsExactly(new MusicTrack("1", expectedTitle, null, expectedPlayable));
@@ -189,7 +190,7 @@ class DeezerIntegratorTest {
     @ParameterizedTest
     @CsvSource(nullValues = "NULL", value = {"NULL, false", "'', false", "preview.mp3, true"})
     void shouldReturnEmptyWhenTrackHasNoPreviewOrReturnsError(final String preview, final boolean withError) throws BaseException {
-        when(client.track("10")).thenReturn(new DeezerTrackClientResponse(10L, "Song", null, true, preview, null, withError ? ERROR : null));
+        when(client.track("10")).thenReturn(new DeezerTrackClientResponse(10L, "Song", null, true, preview, null, null, withError ? ERROR : null));
 
         assertThat(integrator.findPreview("10")).isEmpty();
     }
@@ -206,5 +207,22 @@ class DeezerIntegratorTest {
         when(client.track("10")).thenThrow(new ResourceAccessException("timeout"));
 
         assertThatThrownBy(() -> integrator.findPreview("10")).isInstanceOf(MusicProviderException.class);
+    }
+
+    @ParameterizedTest
+    @CsvSource(nullValues = "NULL", value = {"m.jpg, b.jpg, b.jpg", "m.jpg, NULL, m.jpg", "NULL, NULL, NULL"})
+    void shouldPreferBigCoverWhenReadingTracks(final String medium, final String big, final String expected) throws BaseException {
+        final DeezerTrackClientResponse track = new DeezerTrackClientResponse(1L, "Song", null, true, "p.mp3", null,
+                new DeezerAlbumClientResponse(medium, big), null);
+        when(client.playlistTracks(PLAYLIST_ID, 0, 100)).thenReturn(new DeezerPageClientResponse<>(List.of(track), 1, null, null));
+
+        assertThat(integrator.playlistTracks(PLAYLIST_ID).getFirst().cover()).isEqualTo(expected);
+    }
+
+    @Test
+    void shouldHaveNoCoverWhenTrackHasNoAlbum() throws BaseException {
+        when(client.playlistTracks(PLAYLIST_ID, 0, 100)).thenReturn(tracksPage(0, 1, null));
+
+        assertThat(integrator.playlistTracks(PLAYLIST_ID).getFirst().cover()).isNull();
     }
 }

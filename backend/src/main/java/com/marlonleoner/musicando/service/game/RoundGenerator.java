@@ -57,7 +57,8 @@ public class RoundGenerator {
             options.add(answer);
             Collections.shuffle(options, random);
 
-            generated.add(new GameRound(byTitle.get(answer).id(), answer, options));
+            final MusicTrack track = byTitle.get(answer);
+            generated.add(new GameRound(track.id(), answer, options, track.artist(), track.cover()));
         }
 
         return generated;

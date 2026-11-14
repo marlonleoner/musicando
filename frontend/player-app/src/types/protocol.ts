@@ -126,6 +126,8 @@ export interface RoundEndedPayload {
     round: number;
     totalRounds: number;
     answer: string;
+    artist: string | null;
+    cover: string | null;
     lastRound: boolean;
     durationMs: number;
     fastest: RoundResult[];
@@ -186,6 +188,8 @@ export interface RoundView {
     options: string[];
     answeredPlayerIds: string[];
     ended: RoundEndedPayload | null;
+    /** Placar da rodada anterior, para mostrar quem subiu ou desceu. */
+    previousScoreboard: Score[];
 }
 
 export interface ApiError {

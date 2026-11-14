@@ -1,6 +1,7 @@
 package com.marlonleoner.musicando.integration;
 
 import com.marlonleoner.musicando.client.deezer.DeezerClient;
+import com.marlonleoner.musicando.client.deezer.dto.response.DeezerAlbumClientResponse;
 import com.marlonleoner.musicando.client.deezer.dto.response.DeezerPageClientResponse;
 import com.marlonleoner.musicando.client.deezer.dto.response.DeezerPlaylistClientResponse;
 import com.marlonleoner.musicando.client.deezer.dto.response.DeezerTrackClientResponse;
@@ -107,11 +108,16 @@ public class DeezerIntegrator implements MusicProvider {
                 Objects.requireNonNullElse(playlist.nbTracks(), 0));
     }
 
+    private String coverOf(DeezerAlbumClientResponse album) {
+        return Objects.nonNull(album.coverBig()) ? album.coverBig() : album.coverMedium();
+    }
+
     private MusicTrack toTrack(DeezerTrackClientResponse track) {
         final String title = Objects.nonNull(track.titleShort()) && !track.titleShort().isBlank() ? track.titleShort() : track.title();
         final String artist = Objects.isNull(track.artist()) ? null : track.artist().name();
+        final String cover = Objects.isNull(track.album()) ? null : coverOf(track.album());
         final boolean playable = !Boolean.FALSE.equals(track.readable()) && hasPreview(track);
 
-        return new MusicTrack(String.valueOf(track.id()), title, artist, playable);
+        return new MusicTrack(String.valueOf(track.id()), title, artist, cover, playable);
     }
 }
