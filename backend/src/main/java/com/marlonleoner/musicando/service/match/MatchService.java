@@ -108,7 +108,7 @@ public class MatchService {
     }
 
     public void finish(Match match) {
-        if (Objects.isNull(match)) {
+        if (Objects.isNull(match) || match.getStatus() == MatchStatus.FINISHED) {
             return;
         }
 

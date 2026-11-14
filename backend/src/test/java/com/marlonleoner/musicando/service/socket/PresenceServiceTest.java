@@ -3,6 +3,7 @@ package com.marlonleoner.musicando.service.socket;
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoleEnum;
+import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
@@ -14,6 +15,8 @@ import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,6 +58,7 @@ class PresenceServiceTest {
     @Test
     void shouldConnectHostAndNotifyRoomWhenHostConnects() throws ObjectNotFoundException {
         final Room room = hostRoom(null);
+        room.setStatus(RoomStatus.PAUSED);
 
         service.onConnected(hostOf(room), SESSION_ID);
 
@@ -78,6 +82,7 @@ class PresenceServiceTest {
     @Test
     void shouldDisconnectHostAndNotifyRoomWhenCurrentHostSessionCloses() throws ObjectNotFoundException {
         final Room room = hostRoom(SESSION_ID);
+        room.setStatus(RoomStatus.IN_PROGRESS);
 
         service.onDisconnected(hostOf(room), SESSION_ID);
 
@@ -189,5 +194,27 @@ class PresenceServiceTest {
 
     private SocketPrincipal playerOf(final Player player) {
         return new SocketPrincipal(RoleEnum.PLAYER, player.getId(), player.getRoom().getCode());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = RoomStatus.class, names = "PAUSED", mode = EnumSource.Mode.EXCLUDE)
+    void shouldNotResumeGameWhenHostConnectsAndRoomIsNotPaused(final RoomStatus status) throws ObjectNotFoundException {
+        final Room room = hostRoom(null);
+        room.setStatus(status);
+
+        service.onConnected(hostOf(room), SESSION_ID);
+
+        verifyNoInteractions(gameEngine);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = RoomStatus.class, names = "IN_PROGRESS", mode = EnumSource.Mode.EXCLUDE)
+    void shouldNotPauseGameWhenHostDisconnectsAndRoomIsNotInProgress(final RoomStatus status) throws ObjectNotFoundException {
+        final Room room = hostRoom(SESSION_ID);
+        room.setStatus(status);
+
+        service.onDisconnected(hostOf(room), SESSION_ID);
+
+        verifyNoInteractions(gameEngine);
     }
 }

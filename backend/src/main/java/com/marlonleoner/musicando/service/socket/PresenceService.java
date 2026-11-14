@@ -42,11 +42,15 @@ public class PresenceService {
     public void onConnected(SocketPrincipal principal, String sessionId) throws ObjectNotFoundException {
         if (principal.isHost()) {
             final Room room = roomService.getOrException(principal.roomCode());
+            final boolean resuming = room.isPaused();
             closePreviousSession(room.getHostSessionId(), sessionId);
             roomService.onConnect(room, sessionId);
             matchService.onConnect(room.getCurrentMatch());
             notifier.broadcast(principal.roomCode(), RoomStateReason.HOST_CONNECTED, principal.participantId());
-            gameEngine.resume(principal.roomCode());
+
+            if (resuming) {
+                gameEngine.resume(principal.roomCode());
+            }
 
             return;
         }
@@ -71,9 +75,14 @@ public class PresenceService {
                 return;
             }
 
+            final boolean pausing = room.isInProgress();
             roomService.onDisconnect(room);
             matchService.onDisconnect(room.getCurrentMatch());
-            gameEngine.pause(principal.roomCode());
+
+            if (pausing) {
+                gameEngine.pause(principal.roomCode());
+            }
+
             notifier.broadcast(principal.roomCode(), RoomStateReason.HOST_DISCONNECTED, principal.participantId());
 
             return;

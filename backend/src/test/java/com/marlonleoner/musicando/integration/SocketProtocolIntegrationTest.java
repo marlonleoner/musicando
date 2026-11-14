@@ -129,14 +129,20 @@ class SocketProtocolIntegrationTest {
         assertThat(event.path("payload").path("players").get(0).has("secret")).isFalse();
     }
 
+    /**
+     * A inscrição proibida é recusada com um frame ERROR e a conexão é fechada. O Spring fecha a sessão logo depois de
+     * enfileirar o ERROR, então o frame pode se perder quando outra thread está escrevendo na mesma conexão; o que é
+     * garantido é o fechamento.
+     */
     @Test
-    void shouldRejectWithErrorFrameWhenPlayerSubscribesToHostTopic() throws Exception {
+    void shouldCloseConnectionWhenPlayerSubscribesToHostTopic() throws Exception {
         final Player player = playerService.createAndSave("Ana", roomService.getOrException(room.getCode()));
         final StompSession session = connect("player", room.getCode(), player.getId(), player.getSecret());
 
         subscribe(session, "/topic/room/" + room.getCode() + "/host");
 
-        assertThat(errorFrames.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo("FORBIDDEN");
+        await().atMost(TIMEOUT_SECONDS, TimeUnit.SECONDS).until(() -> !session.isConnected());
+        assertThat(errorFrames).allMatch("FORBIDDEN"::equals);
     }
 
     @Test

@@ -11,9 +11,11 @@ import com.marlonleoner.musicando.service.game.GameEngine;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import com.marlonleoner.musicando.service.socket.SocketCommandDispatcher;
 import com.marlonleoner.musicando.service.socket.SocketService;
+import com.marlonleoner.musicando.util.LogSanitizer;
 import com.marlonleoner.musicando.util.SocketDestinations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -31,6 +33,8 @@ import java.security.Principal;
 public class SocketController {
 
     private static final String INTERNAL_ERROR_MESSAGE = "Internal server error";
+
+    private static final String SERVICE_UNAVAILABLE_MESSAGE = "Service temporarily unavailable";
 
     private final SocketCommandDispatcher dispatcher;
 
@@ -66,6 +70,12 @@ public class SocketController {
     @MessageExceptionHandler(BaseException.class)
     public void handleBaseException(BaseException ex, Principal principal) {
         sendError(principal, ex.getErrorCode(), ex.getMessage());
+    }
+
+    @MessageExceptionHandler(DataAccessException.class)
+    public void handleDataAccessException(DataAccessException ex, Principal principal) {
+        log.warn("Infrastructure unavailable while processing socket command: {}", LogSanitizer.sanitize(ex.getMessage()));
+        sendError(principal, ErrorCode.SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE_MESSAGE);
     }
 
     @MessageExceptionHandler(Exception.class)

@@ -560,4 +560,35 @@ class GameEngineTest {
             return Instant.ofEpochMilli(millis);
         }
     }
+
+    @Test
+    void shouldPauseWithRemainingTimeWhenRecoveringRunningGame() throws BaseException {
+        startPlaying();
+        clock.advance(7000);
+
+        assertThat(engine.recover(CODE)).isTrue();
+
+        assertThat(state().getPausedRemainingMs()).isEqualTo(13000);
+    }
+
+    @Test
+    void shouldKeepRemainingTimeWhenRecoveringAlreadyPausedGame() throws BaseException {
+        startPlaying();
+        clock.advance(7000);
+        engine.pause(CODE);
+        clock.advance(60000);
+
+        assertThat(engine.recover(CODE)).isTrue();
+
+        assertThat(state().getPausedRemainingMs()).isEqualTo(13000);
+    }
+
+    @Test
+    void shouldNotRecoverWhenThereIsNoRunningGame() {
+        assertThat(engine.recover(CODE)).isFalse();
+
+        storage.put(CODE, GameState.builder().phase(GamePhase.FINISHED).build());
+
+        assertThat(engine.recover(CODE)).isFalse();
+    }
 }

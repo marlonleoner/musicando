@@ -45,6 +45,7 @@ const MESSAGES: Partial<Record<ErrorCode, string>> = {
     GAME_ALREADY_STARTED: "A partida já começou.",
     MUSIC_PROVIDER_UNAVAILABLE: "A Deezer não respondeu. Tente novamente em instantes.",
     ANSWER_NOT_ACCEPTED: "Sua resposta não foi aceita: o tempo da rodada acabou.",
+    SERVICE_UNAVAILABLE: "O servidor está temporariamente indisponível. Tente novamente em instantes.",
 };
 
 /** Mensagem amigável para erros de comandos enviados pelo socket. */

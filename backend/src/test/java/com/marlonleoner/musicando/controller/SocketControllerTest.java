@@ -23,6 +23,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -112,5 +113,13 @@ class SocketControllerTest {
         assertThat(error.code()).isEqualTo(code);
 
         return error;
+    }
+
+    @Test
+    void shouldSendServiceUnavailableToSenderWhenInfrastructureIsDown() {
+        controller.handleDataAccessException(new DataAccessResourceFailureException("Unable to connect to Redis"), PRINCIPAL);
+
+        final SocketErrorPayload error = assertErrorSent(ErrorCode.SERVICE_UNAVAILABLE);
+        assertThat(error.message()).doesNotContain("Redis");
     }
 }
