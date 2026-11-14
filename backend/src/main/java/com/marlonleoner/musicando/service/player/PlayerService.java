@@ -2,6 +2,7 @@ package com.marlonleoner.musicando.service.player;
 
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
+import com.marlonleoner.musicando.domain.exception.NotRoomOwnerException;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.repository.PlayerRepository;
 import com.marlonleoner.musicando.util.UUID7;
@@ -107,5 +108,21 @@ public class PlayerService {
      */
     public int resetConnections() {
         return repository.resetConnections();
+    }
+
+    /**
+     * Retorna o jogador se ele for o VIP da sala.
+     *
+     * @throws ObjectNotFoundException se o jogador não existir
+     * @throws NotRoomOwnerException   se o jogador não for o VIP
+     */
+    public Player getOwnerOrException(String playerId) throws ObjectNotFoundException, NotRoomOwnerException {
+        final Player player = getOrException(playerId);
+
+        if (!player.isOwner()) {
+            throw new NotRoomOwnerException();
+        }
+
+        return player;
     }
 }

@@ -14,5 +14,7 @@ public enum RoomStateReason {
     PLAYER_DISCONNECTED,
     PLAYER_LEFT,
     PLAYER_KICKED,
-    ROOM_CLOSED
+    ROOM_CLOSED,
+    SETTINGS_UPDATED,
+    GAME_STARTED
 }

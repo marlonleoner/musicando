@@ -3,4 +3,10 @@
     <Match>
         <Bug pattern="SPRING_ENDPOINT"/>
     </Match>
+    <!-- Títulos de músicas são apenas exibidos e comparados entre si; a conversão para caixa alta não participa de nenhuma
+         verificação de segurança -->
+    <Match>
+        <Class name="com.marlonleoner.musicando.util.TitleNormalizer"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
 </FindBugsFilter>

@@ -1,5 +1,6 @@
 package com.marlonleoner.musicando.service.room;
 
+import com.marlonleoner.musicando.domain.Match;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
@@ -156,6 +157,16 @@ public class RoomService {
      */
     public void close(Room room) {
         room.setStatus(RoomStatus.CLOSED);
+        save(room);
+    }
+
+    public void attachMatch(Room room, Match match) {
+        room.setCurrentMatch(match);
+        save(room);
+    }
+
+    public void start(Room room) {
+        room.setStatus(RoomStatus.IN_PROGRESS);
         save(room);
     }
 }

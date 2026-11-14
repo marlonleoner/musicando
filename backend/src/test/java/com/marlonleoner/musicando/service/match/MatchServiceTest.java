@@ -1,5 +1,10 @@
 package com.marlonleoner.musicando.service.match;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import com.marlonleoner.musicando.validator.MatchSettingsValidator;
+import com.marlonleoner.musicando.domain.music.MusicPlaylist;
+import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.Match;
 import com.marlonleoner.musicando.domain.enums.MatchStatus;
 import com.marlonleoner.musicando.fixture.Fixture;
@@ -78,5 +83,66 @@ class MatchServiceTest {
         service.onDisconnect(null);
 
         verifyNoInteractions(repository);
+    }
+
+    @Test
+    void shouldCreateWaitingMatchWithDefaultSettingsWhenCreatingForRoom() {
+        final Room room = Fixture.make(Room.class);
+        when(repository.save(any(Match.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final Match match = service.createFor(room);
+
+        assertThat(match.getId()).isNotBlank();
+        assertThat(match.getStatus()).isEqualTo(MatchStatus.WAITING);
+        assertThat(match.getRounds()).isEqualTo(MatchSettingsValidator.DEFAULT_ROUNDS);
+        assertThat(match.getRoundDuration()).isEqualTo(MatchSettingsValidator.DEFAULT_ROUND_DURATION);
+        assertThat(match.getRoom()).isEqualTo(room);
+        assertThat(match.hasPlaylist()).isFalse();
+        assertThat(match.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    void shouldStorePlaylistWhenUpdatingPlaylist() {
+        final Match match = Fixture.make(Match.class);
+        final MusicPlaylist playlist = new MusicPlaylist("123", "Hits", "cover.jpg", 50);
+
+        service.updatePlaylist(match, playlist);
+
+        verify(repository).save(match);
+        assertThat(match.getPlaylistId()).isEqualTo("123");
+        assertThat(match.getPlaylistName()).isEqualTo("Hits");
+        assertThat(match.getPlaylistCover()).isEqualTo("cover.jpg");
+        assertThat(match.getPlaylistTrackCount()).isEqualTo(50);
+    }
+
+    @Test
+    void shouldStoreRoundsWhenUpdatingRounds() {
+        final Match match = Fixture.make(Match.class);
+
+        service.updateRounds(match, 15);
+
+        verify(repository).save(match);
+        assertThat(match.getRounds()).isEqualTo(15);
+    }
+
+    @Test
+    void shouldStoreRoundDurationWhenUpdatingRoundDuration() {
+        final Match match = Fixture.make(Match.class);
+
+        service.updateRoundDuration(match, 30);
+
+        verify(repository).save(match);
+        assertThat(match.getRoundDuration()).isEqualTo(30);
+    }
+
+    @Test
+    void shouldPutMatchInProgressWhenStarting() {
+        final Match match = Fixture.make(Match.class);
+        match.setStatus(MatchStatus.WAITING);
+
+        service.start(match);
+
+        verify(repository).save(match);
+        assertThat(match.getStatus()).isEqualTo(MatchStatus.IN_PROGRESS);
     }
 }

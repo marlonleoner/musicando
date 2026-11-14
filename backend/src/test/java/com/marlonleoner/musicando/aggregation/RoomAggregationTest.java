@@ -1,6 +1,7 @@
 package com.marlonleoner.musicando.aggregation;
 
 import com.marlonleoner.musicando.config.properties.RoomProperties;
+import com.marlonleoner.musicando.domain.Match;
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.enums.RoomStatus;
@@ -18,6 +19,7 @@ import com.marlonleoner.musicando.dto.response.RoomResponse;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.mapper.PlayerMapper;
 import com.marlonleoner.musicando.mapper.RoomMapper;
+import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.player.PlayerService;
 import com.marlonleoner.musicando.service.room.RoomService;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
@@ -52,6 +54,9 @@ class RoomAggregationTest {
     private PlayerService playerService;
 
     @Mock
+    private MatchService matchService;
+
+    @Mock
     private RoomMapper roomMapper;
 
     @Mock
@@ -64,7 +69,7 @@ class RoomAggregationTest {
 
     @BeforeEach
     void setUp() {
-        aggregation = new RoomAggregation(roomService, playerService, roomMapper, playerMapper, notifier, new RoomProperties(MAX_PLAYERS));
+        aggregation = new RoomAggregation(roomService, playerService, matchService, roomMapper, playerMapper, notifier, new RoomProperties(MAX_PLAYERS, 1));
     }
 
     @Test
@@ -81,10 +86,13 @@ class RoomAggregationTest {
     void shouldReturnCreatedRoomWhenCreatingRoom() {
         final Room room = Fixture.make(Room.class);
         final RoomCreatedResponse response = Fixture.make(RoomCreatedResponse.class);
+        final Match match = Fixture.make(Match.class);
         when(roomService.createAndSave()).thenReturn(room);
+        when(matchService.createFor(room)).thenReturn(match);
         when(roomMapper.toCreatedResponse(room)).thenReturn(response);
 
         assertThat(aggregation.createRoom()).isEqualTo(response);
+        verify(roomService).attachMatch(room, match);
     }
 
     @Test

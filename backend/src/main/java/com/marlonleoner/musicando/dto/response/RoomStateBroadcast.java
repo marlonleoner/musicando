@@ -8,7 +8,8 @@ import java.util.Objects;
 /**
  * Estado da sala enviado a todos os inscritos no tópico da sala. Não contém segredos nem referências cíclicas.
  */
-public record RoomStateBroadcast(String code, RoomStatus status, boolean connected, List<PlayerResponse> players) {
+public record RoomStateBroadcast(String code, RoomStatus status, boolean connected, List<PlayerResponse> players,
+        MatchSettingsResponse settings) {
     public RoomStateBroadcast {
         players = Objects.isNull(players) ? List.of() : List.copyOf(players);
     }

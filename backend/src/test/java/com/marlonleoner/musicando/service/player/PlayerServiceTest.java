@@ -1,5 +1,7 @@
 package com.marlonleoner.musicando.service.player;
 
+import com.marlonleoner.musicando.domain.exception.BaseException;
+import com.marlonleoner.musicando.domain.exception.NotRoomOwnerException;
 import com.marlonleoner.musicando.domain.Player;
 import com.marlonleoner.musicando.domain.Room;
 import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
@@ -177,5 +179,23 @@ class PlayerServiceTest {
         }
 
         return players;
+    }
+
+    @Test
+    void shouldReturnPlayerWhenPlayerIsRoomOwner() throws BaseException {
+        final Player player = Fixture.make(Player.class);
+        player.setOwner(true);
+        when(repository.findById(player.getId())).thenReturn(Optional.of(player));
+
+        assertThat(service.getOwnerOrException(player.getId())).isEqualTo(player);
+    }
+
+    @Test
+    void shouldThrowNotRoomOwnerExceptionWhenPlayerIsNotRoomOwner() {
+        final Player player = Fixture.make(Player.class);
+        player.setOwner(false);
+        when(repository.findById(player.getId())).thenReturn(Optional.of(player));
+
+        assertThatThrownBy(() -> service.getOwnerOrException(player.getId())).isInstanceOf(NotRoomOwnerException.class);
     }
 }
