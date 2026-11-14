@@ -1,8 +1,8 @@
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { usePlayerSocket } from "../hooks/usePlayerSocket";
-import type { ErrorPayload, PlayerSession, RoomState } from "../types/protocol";
-import { apiErrorMessage, joinRoom } from "../utils/api.utils";
+import type { ErrorPayload, PlayerSession, RoomState, SettingsChanges } from "../types/protocol";
+import { apiErrorMessage, commandErrorMessage, joinRoom } from "../utils/api.utils";
 import { codeFromUrl } from "../utils/env.utils";
 import { clearPlayerSession, loadPlayerSession, savePlayerSession } from "../utils/storage.utils";
 import { type ExitReason, type IPlayerContext, PlayerContext } from "./contexts";
@@ -28,6 +28,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const [room, setRoom] = useState<RoomState | null>(null);
     const [exitReason, setExitReason] = useState<ExitReason>(null);
     const [joining, setJoining] = useState(false);
+    const [starting, setStarting] = useState(false);
 
     const exitRoom = useCallback((reason: ExitReason) => {
         clearPlayerSession();
@@ -38,6 +39,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     const handleRoomState = useCallback(
         (state: RoomState) => {
+            setStarting(false);
             if (state.status === "CLOSED") {
                 exitRoom("ROOM_CLOSED");
 
@@ -51,7 +53,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     const handleKicked = useCallback(() => exitRoom("KICKED"), [exitRoom]);
 
-    const handleCommandError = useCallback((error: ErrorPayload) => toast.error(error.message), []);
+    const handleCommandError = useCallback((error: ErrorPayload) => {
+        setStarting(false);
+        toast.error(commandErrorMessage(error));
+    }, []);
 
     const handleInvalidSession = useCallback(() => exitRoom("SESSION_EXPIRED"), [exitRoom]);
 
@@ -82,6 +87,23 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         exitRoom(null);
     }, [sendCommand, exitRoom]);
 
+    const updateSettings = useCallback(
+        (changes: SettingsChanges) => {
+            if (!sendCommand("UPDATE_SETTINGS", { ...changes })) {
+                toast.error("Sem conexão com o servidor. Aguarde a reconexão.");
+            }
+        },
+        [sendCommand],
+    );
+
+    const startGame = useCallback(() => {
+        if (sendCommand("START_GAME")) {
+            setStarting(true);
+        } else {
+            toast.error("Sem conexão com o servidor. Aguarde a reconexão.");
+        }
+    }, [sendCommand]);
+
     const dismissExitReason = useCallback(() => setExitReason(null), []);
 
     const value = useMemo<IPlayerContext>(
@@ -93,10 +115,26 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             joining,
             join,
             leave,
+            updateSettings,
+            startGame,
+            starting,
             reclaimTab: reclaim,
             dismissExitReason,
         }),
-        [session, room, status, exitReason, joining, join, leave, reclaim, dismissExitReason],
+        [
+            session,
+            room,
+            status,
+            exitReason,
+            joining,
+            join,
+            leave,
+            updateSettings,
+            startGame,
+            starting,
+            reclaim,
+            dismissExitReason,
+        ],
     );
 
     return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;

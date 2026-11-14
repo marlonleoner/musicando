@@ -30,10 +30,14 @@ function Screen() {
         return <Lobby room={room} session={session} />;
     }
 
+    if (room.status === "PAUSED") {
+        return <StatusScreen title="Partida pausada" description="Aguardando a TV voltar a se conectar." />;
+    }
+
     return (
         <StatusScreen
-            title={room.status === "PAUSED" ? "Partida pausada" : "Partida em andamento"}
-            description="A tela da partida chega na próxima fase do projeto."
+            title="Prepare-se, a partida vai começar!"
+            description="Fique de olho na TV. As rodadas chegam na próxima fase do projeto."
         />
     );
 }

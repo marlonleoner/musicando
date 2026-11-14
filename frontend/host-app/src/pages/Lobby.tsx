@@ -2,6 +2,7 @@ import { useState } from "react";
 import GameCode from "../components/GameCode";
 import JoinQrCode from "../components/JoinQrCode";
 import Logo from "../components/Logo";
+import MatchSettingsCard from "../components/MatchSettingsCard";
 import PlayerList from "../components/PlayerList";
 import { useGame } from "../hooks/useGame";
 import type { RoomState } from "../types/protocol";
@@ -41,6 +42,7 @@ export default function Lobby({ room }: ILobby) {
                 </section>
 
                 <section className="flex w-full grow flex-col gap-4">
+                    <MatchSettingsCard settings={room.settings} vipNickname={vip?.nickname} />
                     <div className="flex items-baseline justify-between">
                         <h2 className="text-3xl font-bold text-white">Jogadores ({room.players.length})</h2>
                         <span className="text-lg text-white/60">

@@ -32,10 +32,20 @@ function Screen() {
         return <Lobby room={room} />;
     }
 
+    if (room.status === "PAUSED") {
+        return <StatusScreen title="Partida pausada" />;
+    }
+
+    const playlist = room.settings?.playlist;
+
     return (
         <StatusScreen
-            title={room.status === "PAUSED" ? "Partida pausada" : "Partida em andamento"}
-            description="A tela da partida chega na próxima fase do projeto."
+            title="A partida vai começar!"
+            description={
+                playlist
+                    ? `${playlist.name} · ${room.settings?.rounds} rodadas. As rodadas chegam na próxima fase do projeto.`
+                    : "As rodadas chegam na próxima fase do projeto."
+            }
         />
     );
 }

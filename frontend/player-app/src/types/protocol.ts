@@ -14,6 +14,12 @@ export type ErrorCode =
     | "INVALID_NICKNAME"
     | "NICKNAME_TAKEN"
     | "INVALID_COMMAND"
+    | "INVALID_SETTINGS"
+    | "PLAYLIST_NOT_FOUND"
+    | "PLAYLIST_TOO_SMALL"
+    | "NOT_ENOUGH_PLAYERS"
+    | "GAME_ALREADY_STARTED"
+    | "MUSIC_PROVIDER_UNAVAILABLE"
     | "INTERNAL_ERROR";
 
 export type RoomStateReasonType =
@@ -25,7 +31,9 @@ export type RoomStateReasonType =
     | "PLAYER_DISCONNECTED"
     | "PLAYER_LEFT"
     | "PLAYER_KICKED"
-    | "ROOM_CLOSED";
+    | "ROOM_CLOSED"
+    | "SETTINGS_UPDATED"
+    | "GAME_STARTED";
 
 export interface Player {
     id: string;
@@ -35,11 +43,26 @@ export interface Player {
     connected: boolean;
 }
 
+export interface Playlist {
+    id: string;
+    name: string;
+    cover: string | null;
+    trackCount: number;
+}
+
+/** Configuração da partida escolhida pelo VIP. `playlist` fica nulo até a primeira escolha. */
+export interface MatchSettings {
+    playlist: Playlist | null;
+    rounds: number;
+    roundDuration: number;
+}
+
 export interface RoomState {
     code: string;
     status: RoomStatus;
     connected: boolean;
     players: Player[];
+    settings: MatchSettings | null;
 }
 
 export interface RoomStateReason {
@@ -57,7 +80,22 @@ export type SocketEvent =
     | { type: "KICKED"; timestamp: string }
     | { type: "ERROR"; payload: ErrorPayload; timestamp: string };
 
-export type SocketCommandType = "GET_ROOM_STATE" | "LEAVE_ROOM";
+export type SocketCommandType = "GET_ROOM_STATE" | "LEAVE_ROOM" | "UPDATE_SETTINGS" | "START_GAME";
+
+/** Opções aceitas pelo backend para a configuração da partida. */
+export interface MatchOptions {
+    rounds: number[];
+    roundDurations: number[];
+    defaultRounds: number;
+    defaultRoundDuration: number;
+}
+
+/** Campos enviados no `UPDATE_SETTINGS`; só os informados são alterados. */
+export interface SettingsChanges {
+    playlistId?: string;
+    rounds?: number;
+    roundDuration?: number;
+}
 
 /** Credenciais do jogador, recebidas ao entrar na sala. */
 export interface PlayerSession {

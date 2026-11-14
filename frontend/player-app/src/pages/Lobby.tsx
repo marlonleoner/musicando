@@ -1,5 +1,7 @@
 import { useState } from "react";
 import ConnectionBanner from "../components/ConnectionBanner";
+import MatchSettingsPanel from "../components/MatchSettingsPanel";
+import MatchSettingsSummary from "../components/MatchSettingsSummary";
 import PlayerList from "../components/PlayerList";
 import { usePlayer } from "../hooks/usePlayer";
 import type { PlayerSession, RoomState } from "../types/protocol";
@@ -26,22 +28,24 @@ export default function Lobby({ room, session }: ILobby) {
                     {me && <span className="text-lg font-semibold">{me.nickname}</span>}
                 </header>
 
-                <div className="rounded-xl bg-white/10 p-4 text-center">
-                    {me?.owner ? (
-                        <>
+                {me?.owner ? (
+                    <section className="flex flex-col gap-4 rounded-xl bg-white/10 p-4">
+                        <div className="text-center">
                             <p className="text-lg font-bold text-amber-300">Você é o VIP!</p>
-                            <p className="text-sm text-white/70">
-                                Em breve você poderá escolher a playlist e iniciar a partida por aqui.
-                            </p>
-                        </>
-                    ) : (
+                            <p className="text-sm text-white/70">Escolha a playlist, ajuste a partida e comece.</p>
+                        </div>
+                        <MatchSettingsPanel settings={room.settings} />
+                    </section>
+                ) : (
+                    <div className="flex flex-col gap-3 rounded-xl bg-white/10 p-4 text-center">
                         <p className="text-white/80">
                             {vip
                                 ? `Aguardando ${vip.nickname} (VIP) iniciar a partida…`
                                 : "Aguardando a partida começar…"}
                         </p>
-                    )}
-                </div>
+                        <MatchSettingsSummary settings={room.settings} />
+                    </div>
+                )}
 
                 <section className="flex flex-col gap-3">
                     <h2 className="text-sm uppercase text-white/60">Jogadores ({room.players.length})</h2>
