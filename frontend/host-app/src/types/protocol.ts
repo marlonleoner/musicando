@@ -22,6 +22,7 @@ export type ErrorCode =
     | "MUSIC_PROVIDER_UNAVAILABLE"
     | "ANSWER_NOT_ACCEPTED"
     | "SERVICE_UNAVAILABLE"
+    | "RATE_LIMITED"
     | "INTERNAL_ERROR";
 
 export type RoomStateReasonType =
