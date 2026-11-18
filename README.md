@@ -149,3 +149,8 @@ ssh-keygen -t ed25519 -C "musicando-ci" -f musicando-ci -N ""
 2. In the **musicando** repository: *Settings → Secrets and variables → Actions → New repository secret*, name it
    `HOMELAB_DEPLOY_KEY` and paste the content of `musicando-ci` (the private key).
 3. Delete both key files from your machine.
+
+## Credits
+
+Player characters: [Mini Characters](https://kenney.nl/assets/mini-characters) by [Kenney](https://www.kenney.nl)
+(CC0). The images are rendered from the 3D models by `tools/avatars` (see its README).

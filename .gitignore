@@ -12,3 +12,6 @@
 
 # IntelliJ IDEA
 .idea/
+
+# Pacotes de origem dos avatares (baixados da Kenney; veja tools/avatars/README.md)
+*.zip
