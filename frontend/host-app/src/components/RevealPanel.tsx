@@ -83,11 +83,9 @@ const RevealPanel = ({ ended, previousScoreboard, remainingMs, players }: IRevea
                                 style={{ animationDelay: `${(index + 1) * STAGGER_MS}ms` }}
                             >
                                 <span className="w-10 font-bold text-white/60 2xl:w-16">{ordinal(index + 1)}</span>
-                                <Avatar
-                                    avatar={avatarOf(score.playerId)}
-                                    kind="face"
-                                    className="h-10 w-10 shrink-0 2xl:h-14 2xl:w-14"
-                                />
+                                <span className="flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-full bg-white/15 ring-2 ring-white/25 2xl:h-16 2xl:w-16">
+                                    <Avatar avatar={avatarOf(score.playerId)} kind="face" className="h-[90%] w-[90%]" />
+                                </span>
                                 <span className="grow truncate font-semibold">{score.nickname}</span>
                                 {previousScoreboard.length > 0 && (
                                     <PositionChange
