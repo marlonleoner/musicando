@@ -125,6 +125,15 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         [sendCommand],
     );
 
+    const updateAvatar = useCallback(
+        (avatar: string) => {
+            if (!sendCommand("UPDATE_AVATAR", { avatar })) {
+                toast.error("Sem conexão com o servidor. Aguarde a reconexão.");
+            }
+        },
+        [sendCommand],
+    );
+
     const startGame = useCallback(() => {
         if (sendCommand("START_GAME")) {
             setStarting(true);
@@ -166,6 +175,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             join,
             leave,
             updateSettings,
+            updateAvatar,
             startGame,
             starting,
             round,
@@ -184,6 +194,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             join,
             leave,
             updateSettings,
+            updateAvatar,
             startGame,
             starting,
             round,

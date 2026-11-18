@@ -15,6 +15,8 @@ export interface IPlayerContext {
     leave: () => void;
     /** Altera a configuração da partida (somente VIP). A tela muda quando chega o novo estado da sala. */
     updateSettings: (changes: SettingsChanges) => void;
+    /** Troca o personagem do jogador (só no lobby). A tela muda quando chega o novo estado da sala. */
+    updateAvatar: (avatar: string) => void;
     /** Inicia a partida (somente VIP). */
     startGame: () => void;
     /** Verdadeiro entre o envio do `START_GAME` e a resposta do backend. */

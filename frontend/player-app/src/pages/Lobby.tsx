@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Avatar from "../components/Avatar";
+import AvatarPicker from "../components/AvatarPicker";
 import ConnectionBanner from "../components/ConnectionBanner";
 import MatchSettingsPanel from "../components/MatchSettingsPanel";
 import MatchSettingsSummary from "../components/MatchSettingsSummary";
@@ -12,10 +14,20 @@ interface ILobby {
 }
 
 export default function Lobby({ room, session }: ILobby) {
-    const { leave, connection } = usePlayer();
+    const { leave, updateAvatar, connection } = usePlayer();
     const [confirmLeave, setConfirmLeave] = useState(false);
+    const [picking, setPicking] = useState(false);
     const me = room.players.find((player) => player.id === session.playerId);
     const vip = room.players.find((player) => player.owner);
+    const taken = useMemo(
+        () =>
+            new Set(
+                room.players
+                    .filter((player) => player.id !== session.playerId && player.avatar)
+                    .map((player) => player.avatar as string),
+            ),
+        [room.players, session.playerId],
+    );
 
     return (
         <div className="flex min-h-dvh flex-col">
@@ -27,6 +39,29 @@ export default function Lobby({ room, session }: ILobby) {
                     <span className="font-['Monoton'] text-4xl tracking-widest">{room.code}</span>
                     {me && <span className="text-lg font-semibold">{me.nickname}</span>}
                 </header>
+
+                {me && (
+                    <section className="flex flex-col items-center gap-3">
+                        <Avatar avatar={me.avatar} kind="idle" className="h-40 w-40" alt="Seu personagem" />
+                        <button
+                            type="button"
+                            className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80"
+                            onClick={() => setPicking((open) => !open)}
+                        >
+                            {picking ? "Fechar" : "Trocar personagem"}
+                        </button>
+                        {picking && (
+                            <AvatarPicker
+                                current={me.avatar}
+                                taken={taken}
+                                onSelect={(avatar) => {
+                                    updateAvatar(avatar);
+                                    setPicking(false);
+                                }}
+                            />
+                        )}
+                    </section>
+                )}
 
                 {me?.owner ? (
                     <section className="flex flex-col gap-4 rounded-xl bg-white/10 p-4">
