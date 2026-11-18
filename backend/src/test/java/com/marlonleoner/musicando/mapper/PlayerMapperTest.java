@@ -20,6 +20,7 @@ class PlayerMapperTest {
 
         assertThat(response.id()).isEqualTo(player.getId());
         assertThat(response.nickname()).isEqualTo(player.getNickname());
+        assertThat(response.avatar()).isEqualTo(player.getAvatar());
         assertThat(response.score()).isEqualTo(player.getScore());
         assertThat(response.owner()).isEqualTo(player.isOwner());
         assertThat(response.connected()).isEqualTo(player.isConnected());

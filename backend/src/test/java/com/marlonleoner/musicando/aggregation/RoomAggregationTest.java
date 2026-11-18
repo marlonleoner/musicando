@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -103,7 +104,8 @@ class RoomAggregationTest {
         final Player player = Fixture.make(Player.class);
         final JoinRoomResponse response = Fixture.make(JoinRoomResponse.class);
         when(roomService.getOrException(room.getCode())).thenReturn(room);
-        when(playerService.createAndSave("ANA MARIA", room)).thenReturn(player);
+        when(playerService.freeAvatar(room.getPlayers())).thenReturn(Optional.of("robot"));
+        when(playerService.createAndSave("ANA MARIA", room, "robot")).thenReturn(player);
         when(playerMapper.toJoinResponse(player)).thenReturn(response);
 
         assertThat(aggregation.joinRoom(new JoinRoomRequest(room.getCode(), "  ana   maria "))).isEqualTo(response);
@@ -163,7 +165,7 @@ class RoomAggregationTest {
 
     private void assertJoinRejected(final Room room, final String nickname, final Class<? extends Throwable> expected) {
         assertThatThrownBy(() -> aggregation.joinRoom(new JoinRoomRequest(room.getCode(), nickname))).isInstanceOf(expected);
-        verify(playerService, never()).createAndSave(anyString(), any(Room.class));
+        verify(playerService, never()).createAndSave(anyString(), any(Room.class), any());
         verifyNoInteractions(notifier);
     }
 
@@ -174,5 +176,18 @@ class RoomAggregationTest {
         when(playerService.findByRoom(room.getCode())).thenReturn(Fixture.makeList(Player.class, MAX_PLAYERS));
 
         assertJoinRejected(room, "ANA", RoomFullException.class);
+    }
+
+    @Test
+    void shouldCreatePlayerWithoutAvatarWhenEveryAvatarIsInUse() throws BaseException {
+        final Room room = waitingRoom(0);
+        final Player player = Fixture.make(Player.class);
+        when(roomService.getOrException(room.getCode())).thenReturn(room);
+        when(playerService.freeAvatar(room.getPlayers())).thenReturn(Optional.empty());
+        when(playerService.createAndSave("ANA", room, null)).thenReturn(player);
+
+        aggregation.joinRoom(new JoinRoomRequest(room.getCode(), "ana"));
+
+        verify(playerService).createAndSave("ANA", room, null);
     }
 }

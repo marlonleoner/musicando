@@ -7,6 +7,7 @@ import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.repository.PlayerRepository;
 import com.marlonleoner.musicando.service.game.GameLocks;
 import com.marlonleoner.musicando.util.UUID7;
+import com.marlonleoner.musicando.validator.AvatarValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,8 @@ public class PlayerService {
     private final PlayerRepository repository;
 
     private final GameLocks locks;
+
+    private final RandomGenerator random;
 
     private Player save(Player player) {
         player.setUpdatedAt(new Date());
@@ -39,12 +45,13 @@ public class PlayerService {
         return findById(id).orElseThrow(() -> new ObjectNotFoundException(Player.class));
     }
 
-    public Player createAndSave(String nickname, Room room) {
+    public Player createAndSave(String nickname, Room room, String avatar) {
         Date now = new Date();
 
         Player player = Player.builder()
                 .id(UUID7.generate())
                 .nickname(nickname)
+                .avatar(avatar)
                 .room(room)
                 .secret(UUID7.generate())
                 .createdAt(now)
@@ -159,5 +166,25 @@ public class PlayerService {
 
     public void resetResults(List<Player> players) {
         applyResults(players, Map.of(), Map.of());
+    }
+
+    /**
+     * Sorteia um personagem que nenhum dos jogadores informados está usando.
+     *
+     * @return vazio se todos os personagens estiverem em uso (sala com mais jogadores do que personagens)
+     */
+    public Optional<String> freeAvatar(List<Player> players) {
+        final Set<String> used = Objects.requireNonNullElse(players, List.<Player>of()).stream()
+                .map(Player::getAvatar)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        final List<String> free = AvatarValidator.AVATARS.stream().filter(avatar -> !used.contains(avatar)).toList();
+
+        return free.isEmpty() ? Optional.empty() : Optional.of(free.get(random.nextInt(free.size())));
+    }
+
+    public void updateAvatar(Player player, String avatar) {
+        player.setAvatar(avatar);
+        save(player);
     }
 }
