@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.random.RandomGenerator;
 
 /**
@@ -31,6 +33,18 @@ public class RoundGenerator {
      *                                   rodadas e para as opções
      */
     public List<GameRound> generate(List<MusicTrack> tracks, int rounds) throws PlaylistTooSmallException {
+        return generate(tracks, rounds, Set.of());
+    }
+
+    /**
+     * Igual a {@link #generate(List, int)}, mas evita usar como resposta as músicas de {@code avoidedTrackIds} (as que
+     * tocaram no lobby). Elas só viram resposta quando a playlist não tem outras suficientes, e podem aparecer como
+     * opção errada.
+     *
+     * @throws PlaylistTooSmallException se a playlist não tiver títulos distintos com prévia suficientes para as
+     *                                   rodadas e para as opções
+     */
+    public List<GameRound> generate(List<MusicTrack> tracks, int rounds, Set<String> avoidedTrackIds) throws PlaylistTooSmallException {
         final Map<String, MusicTrack> byTitle = new LinkedHashMap<>();
         tracks.stream()
                 .filter(MusicTrack::playable)
@@ -46,6 +60,7 @@ public class RoundGenerator {
         final List<String> titles = new ArrayList<>(byTitle.keySet());
         final List<String> answers = new ArrayList<>(titles);
         Collections.shuffle(answers, random);
+        answers.sort(Comparator.comparing(title -> avoidedTrackIds.contains(byTitle.get(title).id())));
 
         final List<GameRound> generated = new ArrayList<>(rounds);
         for (String answer : answers.subList(0, rounds)) {

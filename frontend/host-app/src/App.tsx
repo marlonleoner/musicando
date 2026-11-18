@@ -1,8 +1,10 @@
 import { Toaster } from "sonner";
 import ConnectionBanner from "./components/ConnectionBanner";
+import VolumeControl from "./components/VolumeControl";
 import { GameProvider } from "./context/GameContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { useGame } from "./hooks/useGame";
+import { useLobbyAudio } from "./hooks/useLobbyAudio";
 import FinalRanking from "./pages/FinalRanking";
 import Game from "./pages/Game";
 import Home from "./pages/Home";
@@ -54,6 +56,7 @@ function App() {
                     <>
                         <ConnectionStatus />
                         <Screen />
+                        <AudioControls />
                     </>
                 </GameProvider>
             </ThemeProvider>
@@ -65,6 +68,31 @@ function ConnectionStatus() {
     const { session, connection } = useGame();
 
     return session ? <ConnectionBanner status={connection} /> : null;
+}
+
+/** Música de fundo do lobby e controle de volume, presentes em todas as telas da sala. */
+function AudioControls() {
+    const { session, room, lobbyAudio } = useGame();
+    const { blocked, unlock } = useLobbyAudio(lobbyAudio, room?.status === "WAITING");
+
+    if (!session || !room) {
+        return null;
+    }
+
+    return (
+        <>
+            {blocked && (
+                <button
+                    type="button"
+                    className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-amber-400 px-6 py-3 text-xl font-bold text-black"
+                    onClick={unlock}
+                >
+                    O navegador bloqueou o som. Clique para ativar
+                </button>
+            )}
+            <VolumeControl />
+        </>
+    );
 }
 
 export default App;

@@ -19,6 +19,7 @@ import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.service.game.GameEngine;
+import com.marlonleoner.musicando.service.game.LobbyMusicService;
 import com.marlonleoner.musicando.service.game.RoundGenerator;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.music.MusicService;
@@ -36,11 +37,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +72,9 @@ class StartGameCommandHandlerTest {
     @Mock
     private RoomStateNotifier notifier;
 
+    @Mock
+    private LobbyMusicService lobbyMusicService;
+
     private StartGameCommandHandler handler;
 
     private Room room;
@@ -79,7 +86,7 @@ class StartGameCommandHandlerTest {
     @BeforeEach
     void setUp() {
         handler = new StartGameCommandHandler(playerService, roomService, matchService, musicService, roundGenerator, gameEngine, notifier,
-                new RoomProperties(12, 2));
+                new RoomProperties(12, 2), lobbyMusicService);
         room = Fixture.make(Room.class);
         room.setStatus(RoomStatus.WAITING);
         room.setPlayers(List.of(player(true), player(true), player(false)));
@@ -106,11 +113,13 @@ class StartGameCommandHandlerTest {
         final List<MusicTrack> tracks = List.of(new MusicTrack("1", "Song", "Artist", true));
         final List<GameRound> rounds = List.of(new GameRound("1", "SONG", List.of("SONG", "A", "B", "C")));
         when(musicService.playlistTracks("123")).thenReturn(tracks);
-        when(roundGenerator.generate(tracks, 10)).thenReturn(rounds);
+        when(lobbyMusicService.trackIds(room.getCode())).thenReturn(Set.of("9"));
+        when(roundGenerator.generate(tracks, 10, Set.of("9"))).thenReturn(rounds);
 
         handler.handle(principal, null);
 
-        final InOrder order = inOrder(matchService, roomService, notifier, gameEngine);
+        final InOrder order = inOrder(lobbyMusicService, matchService, roomService, notifier, gameEngine);
+        order.verify(lobbyMusicService).clear(room.getCode());
         order.verify(matchService).start(match);
         order.verify(roomService).start(room);
         order.verify(notifier).broadcast(room.getCode(), RoomStateReason.GAME_STARTED, "player-1");
@@ -161,10 +170,11 @@ class StartGameCommandHandlerTest {
     void shouldNotStartWhenPlaylistIsTooSmall() throws BaseException {
         givenRoom();
         when(musicService.playlistTracks("123")).thenReturn(List.of());
-        when(roundGenerator.generate(List.of(), 10)).thenThrow(new PlaylistTooSmallException(10, 0));
+        when(roundGenerator.generate(List.of(), 10, Set.of())).thenThrow(new PlaylistTooSmallException(10, 0));
 
         assertThatThrownBy(() -> handler.handle(principal, null)).isInstanceOf(PlaylistTooSmallException.class);
         verifyNoInteractions(gameEngine, matchService, notifier);
+        verify(lobbyMusicService, never()).clear(room.getCode());
     }
 
     @ParameterizedTest

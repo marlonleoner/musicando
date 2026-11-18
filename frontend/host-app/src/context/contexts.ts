@@ -9,6 +9,8 @@ export interface IGameContext {
     round: RoundView | null;
     /** Prévia da música da rodada, recebida só pela TV. */
     audio: RoomAudio | null;
+    /** Prévias que tocam de fundo no lobby, recebidas só pela TV. */
+    lobbyAudio: string[] | null;
     connection: ConnectionStatus;
     creatingRoom: boolean;
     createRoom: () => Promise<void>;

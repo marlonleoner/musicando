@@ -13,6 +13,7 @@ import com.marlonleoner.musicando.domain.music.GameState;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.service.game.GameEngine;
+import com.marlonleoner.musicando.service.game.LobbyMusicService;
 import com.marlonleoner.musicando.service.game.RoundGenerator;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.music.MusicService;
@@ -52,6 +53,8 @@ public class StartGameCommandHandler implements SocketCommandHandler {
 
     private final RoomProperties roomProperties;
 
+    private final LobbyMusicService lobbyMusicService;
+
     @Override
     public void handle(SocketPrincipal principal, JsonNode payload) throws BaseException {
         playerService.getOwnerOrException(principal.participantId());
@@ -73,12 +76,14 @@ public class StartGameCommandHandler implements SocketCommandHandler {
             throw new NotEnoughPlayersException(roomProperties.minPlayers());
         }
 
-        final List<GameRound> rounds = roundGenerator.generate(musicService.playlistTracks(match.getPlaylistId()), match.getRounds());
+        final List<GameRound> rounds = roundGenerator.generate(musicService.playlistTracks(match.getPlaylistId()), match.getRounds(),
+                lobbyMusicService.trackIds(principal.roomCode()));
         final GameState state = GameState.builder()
                 .matchId(match.getId())
                 .roundDuration(match.getRoundDuration())
                 .rounds(new ArrayList<>(rounds))
                 .build();
+        lobbyMusicService.clear(principal.roomCode());
         matchService.start(match);
         roomService.start(room);
         notifier.broadcast(principal.roomCode(), RoomStateReason.GAME_STARTED, principal.participantId());

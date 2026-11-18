@@ -8,6 +8,7 @@ public enum SocketEventType {
     ROUND_COUNTDOWN,
     ROUND_STARTED,
     ROUND_AUDIO,
+    LOBBY_AUDIO,
     ANSWER_RECEIVED,
     ROUND_ENDED
 }
