@@ -15,7 +15,7 @@ const OPTION_COLORS = ["bg-rose-500", "bg-sky-500", "bg-amber-500", "bg-emerald-
 
 export default function Game({ room, session }: IGame) {
     const { round, connection } = usePlayer();
-    const remainingMs = useCountdown(round ? round.endsAt : null);
+    const remainingMs = useCountdown(round ? round.endsAt : null, round?.phaseDurationMs);
 
     return (
         <div className="flex min-h-dvh flex-col">

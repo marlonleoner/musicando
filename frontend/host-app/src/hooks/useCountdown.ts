@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 
 const TICK_MS = 200;
 
-/** Milissegundos que faltam até `endsAt`, atualizados algumas vezes por segundo. */
-export const useCountdown = (endsAt: number | null): number => {
+/**
+ * Milissegundos que faltam até `endsAt`, atualizados algumas vezes por segundo. Nunca passa de `durationMs`: logo que
+ * uma etapa começa, o relógio guardado ainda é o da atualização anterior, o que faria a contagem começar acima da
+ * duração (um "4" numa contagem de 3 segundos).
+ */
+export const useCountdown = (endsAt: number | null, durationMs = Number.POSITIVE_INFINITY): number => {
     const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
@@ -16,5 +20,5 @@ export const useCountdown = (endsAt: number | null): number => {
         return () => window.clearInterval(timer);
     }, [endsAt]);
 
-    return endsAt === null ? 0 : Math.max(0, endsAt - now);
+    return endsAt === null ? 0 : Math.min(durationMs, Math.max(0, endsAt - now));
 };
