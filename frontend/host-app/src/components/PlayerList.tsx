@@ -12,20 +12,28 @@ const PlayerList = ({ players, onKick }: IPlayerList) => {
     const [confirming, setConfirming] = useState<string | null>(null);
 
     if (players.length === 0) {
-        return <p className="text-xl text-white/60">Nenhum jogador ainda. Escaneie o QR code para entrar!</p>;
+        return (
+            <p className="text-[clamp(0.875rem,2.8vh,1.5rem)] text-white/60">
+                Nenhum jogador ainda. Escaneie o QR code para entrar!
+            </p>
+        );
     }
 
     return (
-        <ul className="grid w-full grid-cols-3 gap-3 md:grid-cols-4 xl:grid-cols-6">
+        <ul className="grid w-full grid-cols-[repeat(auto-fill,minmax(clamp(5.5rem,11vw,11rem),1fr))] gap-[1vh]">
             {players.map((player) => (
                 <li
                     key={player.id}
-                    className={`animate-pop relative flex flex-col items-center gap-1 rounded-2xl px-2 pb-3 pt-2 ${
+                    className={`animate-pop relative flex flex-col items-center gap-[0.4vh] rounded-2xl px-2 pb-[1.2vh] pt-[0.8vh] ${
                         player.connected ? (player.owner ? "bg-[#5b3cc4]" : "bg-[#44277B]") : "bg-white/10 opacity-50"
                     }`}
                 >
-                    <Avatar avatar={player.avatar} kind="idle" className="h-32 w-32 2xl:h-44 2xl:w-44" />
-                    <span className="max-w-full truncate text-lg font-semibold text-white 2xl:text-2xl">
+                    <Avatar
+                        avatar={player.avatar}
+                        kind="idle"
+                        className="h-[clamp(3rem,13vh,10rem)] w-[clamp(3rem,13vh,10rem)]"
+                    />
+                    <span className="max-w-full truncate text-[clamp(0.75rem,2.4vh,1.5rem)] font-semibold text-white">
                         {player.nickname}
                     </span>
                     {player.owner ? (
