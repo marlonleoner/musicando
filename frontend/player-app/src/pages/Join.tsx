@@ -35,7 +35,7 @@ export default function Join() {
     };
 
     return (
-        <form className="flex min-h-screen flex-col items-center justify-center gap-8 px-6" onSubmit={handleSubmit}>
+        <form className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6" onSubmit={handleSubmit}>
             <Logo />
 
             {exitReason && (

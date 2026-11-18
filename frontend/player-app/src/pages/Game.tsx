@@ -18,7 +18,7 @@ export default function Game({ room, session }: IGame) {
     const remainingMs = useCountdown(round ? round.endsAt : null);
 
     return (
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-dvh flex-col">
             <ConnectionBanner status={connection} hostConnected={room.connected} />
 
             <div className="flex grow flex-col gap-6 px-6 py-8">
