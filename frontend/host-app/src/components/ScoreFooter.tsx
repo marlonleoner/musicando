@@ -25,7 +25,7 @@ const ScoreFooter = ({ room, round }: IScoreFooter) => {
     const compact = players.length >= COMPACT_FROM;
 
     return (
-        <footer className="flex flex-wrap justify-center gap-3 px-24 pb-4">
+        <footer className="flex shrink-0 flex-wrap justify-center gap-3 px-24 pb-4">
             {players.map((player, index) => {
                 const answered = round?.phase === "PLAYING" && round.answeredPlayerIds.includes(player.id);
                 const change =

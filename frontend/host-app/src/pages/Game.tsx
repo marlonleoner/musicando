@@ -50,8 +50,11 @@ export default function Game({ room }: IGame) {
     }, [revealedRound, someoneGotIt]);
 
     return (
-        <div className="relative flex min-h-screen w-full flex-col">
-            <Jumbotron remainingMs={remainingMs} totalMs={round?.phaseDurationMs ?? 0} />
+        // A tela tem sempre a altura da janela: o conteúdo se ajusta entre o letreiro e o placar do rodapé.
+        <div className="relative flex h-dvh w-full flex-col overflow-hidden">
+            <Jumbotron remainingMs={remainingMs} totalMs={round?.phaseDurationMs ?? 0}>
+                {round && <RoundDots round={round.round} totalRounds={round.totalRounds} />}
+            </Jumbotron>
             <div className="absolute right-8 top-6 z-20">
                 <CloseRoomButton onClose={closeRoom} />
             </div>
@@ -66,7 +69,7 @@ export default function Game({ room }: IGame) {
                 </button>
             )}
 
-            <main className="flex grow flex-col items-center justify-center gap-5 px-10 pb-4 pt-36 2xl:pt-40">
+            <main className="flex min-h-0 grow flex-col items-center justify-center gap-5 px-10 pb-4 pt-40 2xl:pt-44">
                 <RoundContent
                     room={room}
                     round={round}
@@ -95,7 +98,6 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
     if (round.phase === "COUNTDOWN") {
         return (
             <>
-                <RoundDots round={round.round} totalRounds={round.totalRounds} />
                 <span className="text-2xl uppercase text-white/60 2xl:text-4xl">Prepare-se!</span>
                 <span
                     key={`${round.round}-${Math.ceil(remainingMs / 1000)}`}
@@ -116,11 +118,11 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
 
     return (
         <div className="flex w-full max-w-5xl flex-col items-center gap-5 2xl:max-w-7xl">
-            <RoundDots round={round.round} totalRounds={round.totalRounds} />
             <span className="animate-pop text-4xl font-bold text-white 2xl:text-6xl">Qual é a música?</span>
             <RoundTimer remainingMs={remainingMs} totalMs={round.phaseDurationMs} />
             {!hasPreview && <p className="text-lg text-white/60">Prévia indisponível nesta rodada</p>}
-            <ul className="grid w-full grid-cols-2 gap-4 2xl:gap-6">
+            {/* Linhas de mesma altura: todas as opções ficam do tamanho da maior. */}
+            <ul className="grid w-full auto-rows-fr grid-cols-2 gap-4 2xl:gap-6">
                 {round.options.map((option, index) => (
                     <li
                         key={option}
