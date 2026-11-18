@@ -1,0 +1,120 @@
+name: CI
+
+# Em todo PR e push no master: testes do backend e lint/build dos frontends.
+# Só no master: publica as imagens no GHCR e atualiza as tags no repositório homelab (apps/musicando),
+# que o Argo CD aplica no cluster.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  backend:
+    name: Backend (mvn verify)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - run: ./mvnw -B verify
+
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r lint
+      - run: pnpm -r build
+
+  images:
+    name: Image (${{ matrix.image }})
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - image: musicando-backend
+            context: backend
+            build-args: ""
+          - image: musicando-host
+            context: frontend
+            build-args: |
+              APP=host-app
+              VITE_PLAYER_APP_URL=http://musicando-play.home.labz
+          - image: musicando-player
+            context: frontend
+            build-args: |
+              APP=player-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          build-args: ${{ matrix.build-args }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ matrix.image }}:sha-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ matrix.image }}:latest
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  deploy:
+    name: Update homelab image tags
+    needs: images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Deploy key com escrita no repositório homelab (secret HOMELAB_DEPLOY_KEY, ver README)
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/homelab
+          ref: main
+          ssh-key: ${{ secrets.HOMELAB_DEPLOY_KEY }}
+      - name: Point apps/musicando to the new images
+        run: |
+          sed -i -E "s/^(    newTag: ).*/\1sha-${GITHUB_SHA}/" apps/musicando/kustomization.yaml
+          git diff --stat
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/musicando/kustomization.yaml
+          git commit -m "chore: deploy musicando ${GITHUB_SHA::7}"
+          git pull --rebase origin main
+          git push origin HEAD:main
