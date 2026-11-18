@@ -1,4 +1,4 @@
-import { useState } from "react";
+import CloseRoomButton from "../components/CloseRoomButton";
 import GameCode from "../components/GameCode";
 import JoinQrCode from "../components/JoinQrCode";
 import Logo from "../components/Logo";
@@ -13,7 +13,6 @@ interface ILobby {
 
 export default function Lobby({ room }: ILobby) {
     const { lobbyAudio, kickPlayer, closeRoom } = useGame();
-    const [confirmClose, setConfirmClose] = useState(false);
     const vip = room.players.find((player) => player.owner);
 
     return (
@@ -28,30 +27,7 @@ export default function Lobby({ room }: ILobby) {
                             <GameCode code={room.code} />
                         </span>
                     </div>
-                    <button
-                        type="button"
-                        className={`flex h-12 items-center justify-center rounded-full bg-red-500 font-bold text-white transition hover:bg-red-600 ${
-                            confirmClose ? "px-5 text-sm" : "w-12"
-                        }`}
-                        aria-label={confirmClose ? "Confirmar encerramento da sala" : "Encerrar sala"}
-                        title="Encerrar sala"
-                        onClick={() => (confirmClose ? closeRoom() : setConfirmClose(true))}
-                        onBlur={() => setConfirmClose(false)}
-                    >
-                        {confirmClose ? (
-                            "Encerrar a sala?"
-                        ) : (
-                            <svg
-                                viewBox="0 0 24 24"
-                                className="size-6"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                            >
-                                <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
-                            </svg>
-                        )}
-                    </button>
+                    <CloseRoomButton onClose={closeRoom} />
                 </div>
             </header>
 

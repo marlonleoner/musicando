@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import Avatar from "../components/Avatar";
-import Equalizer from "../components/Equalizer";
-import Logo from "../components/Logo";
+import { useEffect } from "react";
+import CloseRoomButton from "../components/CloseRoomButton";
+import Jumbotron from "../components/Jumbotron";
 import RevealPanel from "../components/RevealPanel";
-import TimeBar from "../components/TimeBar";
+import RoundDots from "../components/RoundDots";
+import RoundTimer from "../components/RoundTimer";
+import ScoreFooter from "../components/ScoreFooter";
 import { useCountdown } from "../hooks/useCountdown";
 import { useGame } from "../hooks/useGame";
 import { useRoundAudio } from "../hooks/useRoundAudio";
@@ -14,11 +15,18 @@ interface IGame {
     room: RoomState;
 }
 
+/** Cores e letras das opções, iguais às dos botões do celular, para o jogador achar a sua escolha. */
+const OPTIONS = [
+    { letter: "A", badge: "bg-rose-500", border: "border-l-rose-500" },
+    { letter: "B", badge: "bg-sky-500", border: "border-l-sky-500" },
+    { letter: "C", badge: "bg-amber-500", border: "border-l-amber-500" },
+    { letter: "D", badge: "bg-emerald-500", border: "border-l-emerald-500" },
+];
+
 export default function Game({ room }: IGame) {
     const { round, audio, closeRoom } = useGame();
     const { blocked, unlock } = useRoundAudio(audio, round);
     const remainingMs = useCountdown(round ? round.endsAt : null, round?.phaseDurationMs);
-    const [confirmClose, setConfirmClose] = useState(false);
     const countdownSecond = round?.phase === "COUNTDOWN" ? Math.ceil(remainingMs / 1000) : null;
     const revealedRound = round?.phase === "REVEAL" && round.ended ? round.round : null;
     const someoneGotIt = Boolean(round?.ended && round.ended.fastest.length > 0);
@@ -42,35 +50,23 @@ export default function Game({ room }: IGame) {
     }, [revealedRound, someoneGotIt]);
 
     return (
-        <div className="flex min-h-screen w-full flex-col gap-8 p-10">
-            <header className="flex items-center justify-between">
-                <Logo size="small" />
-                {round && (
-                    <span className="text-2xl font-semibold text-white/80 2xl:text-4xl">
-                        Rodada {round.round} de {round.totalRounds}
-                    </span>
-                )}
-                <button
-                    type="button"
-                    className={`rounded-lg px-4 py-2 text-sm ${confirmClose ? "bg-red-500 font-bold" : "text-white/50 hover:text-white"}`}
-                    onClick={() => (confirmClose ? closeRoom() : setConfirmClose(true))}
-                    onBlur={() => setConfirmClose(false)}
-                >
-                    {confirmClose ? "Confirmar encerramento" : "Encerrar sala"}
-                </button>
-            </header>
+        <div className="relative flex min-h-screen w-full flex-col">
+            <Jumbotron remainingMs={remainingMs} totalMs={round?.phaseDurationMs ?? 0} />
+            <div className="absolute right-8 top-6 z-20">
+                <CloseRoomButton onClose={closeRoom} />
+            </div>
 
             {blocked && (
                 <button
                     type="button"
-                    className="self-center rounded-xl bg-amber-400 px-6 py-3 text-xl font-bold text-black"
+                    className="absolute left-8 top-6 z-20 max-w-xs rounded-xl bg-amber-400 px-5 py-3 text-left text-lg font-bold text-black"
                     onClick={unlock}
                 >
                     O navegador bloqueou o som. Clique para ativar
                 </button>
             )}
 
-            <main className="flex grow flex-col items-center justify-center gap-10">
+            <main className="flex grow flex-col items-center justify-center gap-5 px-10 pb-4 pt-36 2xl:pt-40">
                 <RoundContent
                     room={room}
                     round={round}
@@ -78,6 +74,8 @@ export default function Game({ room }: IGame) {
                     hasPreview={Boolean(audio?.previewUrl)}
                 />
             </main>
+
+            <ScoreFooter room={room} round={round} />
         </div>
     );
 }
@@ -97,10 +95,11 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
     if (round.phase === "COUNTDOWN") {
         return (
             <>
+                <RoundDots round={round.round} totalRounds={round.totalRounds} />
                 <span className="text-2xl uppercase text-white/60 2xl:text-4xl">Prepare-se!</span>
                 <span
                     key={`${round.round}-${Math.ceil(remainingMs / 1000)}`}
-                    className="animate-pop text-[12rem] font-bold leading-none text-amber-300 2xl:text-[18rem]"
+                    className="animate-pop text-[10rem] font-bold leading-none text-amber-300 2xl:text-[16rem]"
                 >
                     {Math.max(1, Math.ceil(remainingMs / 1000))}
                 </span>
@@ -109,44 +108,37 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
     }
 
     if (round.phase === "REVEAL" && round.ended) {
-        return (
-            <RevealPanel
-                ended={round.ended}
-                previousScoreboard={round.previousScoreboard}
-                remainingMs={remainingMs}
-                players={room.players}
-            />
-        );
+        return <RevealPanel ended={round.ended} remainingMs={remainingMs} players={room.players} />;
     }
 
     const connected = room.players.filter((player) => player.connected);
     const answered = connected.filter((player) => round.answeredPlayerIds.includes(player.id)).length;
 
     return (
-        <div className="flex w-full max-w-4xl flex-col items-center gap-10 2xl:max-w-6xl">
-            {hasPreview ? <Equalizer /> : <p className="text-2xl text-white/60">Prévia indisponível nesta rodada</p>}
-            <span className="animate-pop text-3xl font-bold text-white 2xl:text-6xl">Qual é a música?</span>
-            <TimeBar remainingMs={remainingMs} totalMs={round.phaseDurationMs} className="h-4" />
-            <span className="text-2xl text-white/70 2xl:text-4xl">
-                {answered} de {connected.length} responderam · {Math.ceil(remainingMs / 1000)} s
-            </span>
-            <ul className="flex flex-wrap justify-center gap-3">
-                {connected.map((player) => (
+        <div className="flex w-full max-w-5xl flex-col items-center gap-5 2xl:max-w-7xl">
+            <RoundDots round={round.round} totalRounds={round.totalRounds} />
+            <span className="animate-pop text-4xl font-bold text-white 2xl:text-6xl">Qual é a música?</span>
+            <RoundTimer remainingMs={remainingMs} totalMs={round.phaseDurationMs} />
+            {!hasPreview && <p className="text-lg text-white/60">Prévia indisponível nesta rodada</p>}
+            <ul className="grid w-full grid-cols-2 gap-4 2xl:gap-6">
+                {round.options.map((option, index) => (
                     <li
-                        key={player.id}
-                        className={`rounded-xl px-4 py-2 text-xl font-semibold transition 2xl:px-6 2xl:py-3 2xl:text-3xl ${
-                            round.answeredPlayerIds.includes(player.id)
-                                ? "bg-emerald-500 text-white"
-                                : "bg-white/10 text-white/50"
-                        }`}
+                        key={option}
+                        className={`animate-rise flex items-center gap-4 rounded-2xl border border-l-8 border-white/10 bg-white/5 px-6 py-4 2xl:py-5 ${OPTIONS[index]?.border ?? ""}`}
+                        style={{ animationDelay: `${index * 80}ms` }}
                     >
-                        <span className="flex items-center gap-2">
-                            <Avatar avatar={player.avatar} kind="face" className="h-8 w-8 2xl:h-12 2xl:w-12" />
-                            {player.nickname}
+                        <span
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xl font-bold text-white 2xl:h-14 2xl:w-14 2xl:text-3xl ${OPTIONS[index]?.badge ?? "bg-white/20"}`}
+                        >
+                            {OPTIONS[index]?.letter}
                         </span>
+                        <span className="text-2xl font-bold text-white 2xl:text-4xl">{option}</span>
                     </li>
                 ))}
             </ul>
+            <span className="text-xl text-white/70 2xl:text-3xl">
+                {answered} de {connected.length} responderam
+            </span>
         </div>
     );
 }
