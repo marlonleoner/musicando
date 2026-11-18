@@ -1,12 +1,15 @@
 import type { MatchSettings } from "../types/protocol";
+import Equalizer from "./Equalizer";
 
 interface IMatchSettingsCard {
     settings: MatchSettings | null;
     vipNickname?: string;
+    /** A música do lobby está tocando trechos desta playlist. */
+    playing?: boolean;
 }
 
 /** Configuração atual da partida, atualizada a cada escolha do VIP. */
-const MatchSettingsCard = ({ settings, vipNickname }: IMatchSettingsCard) => {
+const MatchSettingsCard = ({ settings, vipNickname, playing = false }: IMatchSettingsCard) => {
     if (!settings?.playlist) {
         return (
             <div className="rounded-2xl bg-white/10 p-6 text-xl text-white/60">
@@ -32,13 +35,18 @@ const MatchSettingsCard = ({ settings, vipNickname }: IMatchSettingsCard) => {
                     ♪
                 </div>
             )}
-            <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex min-w-0 grow flex-col gap-1">
                 <span className="text-sm uppercase text-white/60">Playlist</span>
                 <span className="truncate text-3xl font-bold text-white">{playlist.name}</span>
                 <span className="text-xl text-white/80">
                     {settings.rounds} rodadas · {settings.roundDuration} s por rodada
                 </span>
             </div>
+            {playing && (
+                <div className="shrink-0" title="Tocando trechos da playlist">
+                    <Equalizer compact />
+                </div>
+            )}
         </div>
     );
 };
