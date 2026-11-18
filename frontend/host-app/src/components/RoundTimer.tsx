@@ -12,7 +12,7 @@ const RoundTimer = ({ remainingMs, totalMs }: IRoundTimer) => {
     const fraction = totalMs > 0 ? Math.min(1, remainingMs / totalMs) : 0;
 
     return (
-        <div className="relative h-24 w-24 2xl:h-28 2xl:w-28">
+        <div className="relative h-[clamp(3rem,11vh,7rem)] w-[clamp(3rem,11vh,7rem)]">
             <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
                 <circle
                     cx="50"
@@ -34,7 +34,7 @@ const RoundTimer = ({ remainingMs, totalMs }: IRoundTimer) => {
                     strokeDashoffset={CIRCUMFERENCE * (1 - fraction)}
                 />
             </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white 2xl:text-5xl">
+            <span className="absolute inset-0 flex items-center justify-center text-[clamp(1rem,4.2vh,3rem)] font-bold text-white">
                 {Math.ceil(remainingMs / 1000)}
             </span>
         </div>

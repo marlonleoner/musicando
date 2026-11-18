@@ -15,10 +15,12 @@ const FastestSidebar = ({ ended, players }: IFastestSidebar) => {
     const avatarOf = (playerId: string) => players.find((player) => player.id === playerId)?.avatar ?? null;
 
     return (
-        <aside className="absolute left-0 top-44 z-20 flex w-[clamp(16rem,21vw,26rem)] flex-col gap-[1vh]">
-            <h2 className="pl-6 text-[clamp(1rem,2.6vh,1.875rem)] font-bold uppercase text-white/70">Mais rápidos</h2>
+        <aside className="absolute left-0 top-[calc(4vw+9vh+1rem)] z-20 flex w-[clamp(11rem,21vw,26rem)] flex-col gap-[1vh]">
+            <h2 className="pl-[1.2vw] text-[clamp(0.75rem,2.6vh,1.875rem)] font-bold uppercase text-white/70">
+                Mais rápidos
+            </h2>
             {ended.fastest.length === 0 ? (
-                <p className="animate-rise rounded-r-2xl bg-white/10 px-6 py-[1.5vh] text-[clamp(1rem,2.4vh,1.75rem)] text-white/60">
+                <p className="animate-rise rounded-r-2xl bg-white/10 px-[1.2vw] py-[1.5vh] text-[clamp(0.75rem,2.4vh,1.75rem)] text-white/60">
                     Ninguém acertou essa!
                 </p>
             ) : (
@@ -26,23 +28,23 @@ const FastestSidebar = ({ ended, players }: IFastestSidebar) => {
                     {ended.fastest.map((result, index) => (
                         <li
                             key={result.playerId}
-                            className={`animate-rise flex items-center gap-3 rounded-r-2xl py-[1vh] pl-6 pr-4 ${
+                            className={`animate-rise flex items-center gap-[0.8vw] rounded-r-2xl py-[0.9vh] pl-[1.2vw] pr-[0.8vw] ${
                                 index === 0 ? "bg-[#44277B]" : "bg-white/10"
                             }`}
                             style={{ animationDelay: `${(index + 1) * STAGGER_MS}ms` }}
                         >
-                            <span className="w-[2.2em] text-[clamp(1rem,2.4vh,1.75rem)] font-bold italic text-amber-300">
+                            <span className="w-[2em] shrink-0 text-[clamp(0.75rem,2.4vh,1.75rem)] font-bold italic text-amber-300">
                                 {ordinal(index + 1)}
                             </span>
                             <AvatarFrame
                                 avatar={avatarOf(result.playerId)}
-                                className="h-[clamp(2.5rem,6vh,4.5rem)] w-[clamp(2.5rem,6vh,4.5rem)]"
+                                className="h-[clamp(1.5rem,6vh,4.5rem)] w-[clamp(1.5rem,6vh,4.5rem)]"
                             />
                             <span className="flex min-w-0 grow flex-col leading-tight">
-                                <span className="truncate text-[clamp(1rem,2.4vh,1.75rem)] font-bold text-white">
+                                <span className="truncate text-[clamp(0.75rem,2.4vh,1.75rem)] font-bold text-white">
                                     {result.nickname}
                                 </span>
-                                <span className="text-[clamp(0.875rem,2vh,1.375rem)] text-white/60">
+                                <span className="whitespace-nowrap text-[clamp(0.625rem,2vh,1.375rem)] text-white/60">
                                     {formatSeconds(result.responseTimeMs)} ·{" "}
                                     <span className="font-bold text-emerald-400">+{formatPoints(result.points)}</span>
                                 </span>

@@ -10,7 +10,7 @@ interface IRevealPanel {
  * sem tirar a resposta do centro da tela.
  */
 const RevealPanel = ({ ended }: IRevealPanel) => (
-    <div className="flex w-full flex-col items-center gap-[2.5vh] px-[clamp(17rem,23vw,28rem)]">
+    <div className="flex w-full flex-col items-center gap-[2.5vh] px-[clamp(11.5rem,23vw,28rem)]">
         <div className="flex items-center gap-[3vh]">
             {ended.cover && (
                 <img
