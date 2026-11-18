@@ -25,7 +25,7 @@ const ScoreFooter = ({ room, round }: IScoreFooter) => {
     const compact = players.length >= COMPACT_FROM;
 
     return (
-        <footer className="flex shrink-0 flex-wrap justify-center gap-3 px-24 pb-4">
+        <footer className="flex shrink-0 justify-center gap-[0.8vw] px-[max(6vw,5.5rem)] pb-[1.5vh]">
             {players.map((player, index) => {
                 const answered = round?.phase === "PLAYING" && round.answeredPlayerIds.includes(player.id);
                 const change =
@@ -36,30 +36,37 @@ const ScoreFooter = ({ room, round }: IScoreFooter) => {
                 return (
                     <div
                         key={player.id}
-                        className={`relative flex flex-col items-center gap-1 rounded-2xl px-2 pb-2 pt-3 transition-colors ${
-                            compact ? "w-28" : "w-36 2xl:w-44"
+                        className={`relative flex min-w-0 flex-1 basis-0 flex-col items-center gap-[0.4vh] rounded-2xl px-2 pb-[0.8vh] pt-[1.2vh] transition-colors ${
+                            compact ? "max-w-[8rem]" : "max-w-[11rem]"
                         } ${answered ? "bg-[#44277B]" : "bg-white/10"} ${player.connected ? "" : "opacity-40"}`}
                     >
-                        <span className="absolute left-3 top-2 text-sm italic text-white/50">{index + 1}</span>
+                        <span className="absolute left-[0.6vw] top-[0.6vh] text-[clamp(0.625rem,1.6vh,0.875rem)] italic text-white/50">
+                            {index + 1}
+                        </span>
                         {answered && (
                             <span
-                                className="absolute right-3 top-1.5 text-lg font-bold text-emerald-400"
+                                className="absolute right-[0.6vw] top-[0.4vh] text-[clamp(0.75rem,2.2vh,1.125rem)] font-bold text-emerald-400"
                                 title="Respondeu"
                             >
                                 ✓
                             </span>
                         )}
                         {change !== 0 && (
-                            <PositionChange change={change} className="absolute right-0 top-1.5 text-sm" />
+                            <PositionChange
+                                change={change}
+                                className="absolute right-0 top-[0.4vh] text-[clamp(0.625rem,1.6vh,0.875rem)]"
+                            />
                         )}
                         <AvatarFrame
                             avatar={player.avatar}
-                            className={compact ? "h-12 w-12" : "h-14 w-14 2xl:h-20 2xl:w-20"}
+                            className="h-[clamp(1.75rem,7vh,5rem)] w-[clamp(1.75rem,7vh,5rem)]"
                         />
-                        <span className="max-w-full truncate text-base font-semibold text-white 2xl:text-xl">
+                        <span className="max-w-full truncate text-[clamp(0.7rem,2.1vh,1.25rem)] font-semibold text-white">
                             {player.nickname}
                         </span>
-                        <span className="text-sm text-white/60 2xl:text-lg">{formatPoints(scoreOf(player.id))}</span>
+                        <span className="text-[clamp(0.65rem,1.8vh,1.125rem)] text-white/60">
+                            {formatPoints(scoreOf(player.id))}
+                        </span>
                     </div>
                 );
             })}
