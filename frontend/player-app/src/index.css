@@ -6,13 +6,22 @@ body,
     min-height: 100%;
 }
 
+/* Sem o efeito elástico ao puxar além do conteúdo (e sem "puxar para recarregar" no Android). */
+html,
+body {
+    overscroll-behavior: none;
+}
+
 /* Cor sólida de fundo: navegadores do iOS usam essa cor (e não o gradiente) para pintar a barra de status. */
 html {
     background-color: #140c22;
 }
 
 body {
-    background: radial-gradient(circle at top, #2b1a47 0%, #140c22 70%) #140c22;
+    /* A borda de cima também é escura (igual à barra de status do celular); o brilho roxo surge logo abaixo. */
+    background:
+        linear-gradient(to bottom, #140c22 0, transparent 120px),
+        radial-gradient(circle at top, #2b1a47 0%, #140c22 70%) #140c22;
     color: white;
     -webkit-tap-highlight-color: transparent;
 }

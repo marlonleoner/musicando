@@ -27,7 +27,10 @@ html {
 }
 
 body {
-    background: radial-gradient(circle at top, #2b1a47 0%, #140c22 70%) #140c22;
+    /* A borda de cima também é escura (igual à barra de status do celular); o brilho roxo surge logo abaixo. */
+    background:
+        linear-gradient(to bottom, #140c22 0, transparent 120px),
+        radial-gradient(circle at top, #2b1a47 0%, #140c22 70%) #140c22;
     color: white;
 }
 

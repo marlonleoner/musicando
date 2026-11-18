@@ -18,7 +18,7 @@ export default function Lobby({ room, session }: ILobby) {
     const vip = room.players.find((player) => player.owner);
 
     return (
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-dvh flex-col">
             <ConnectionBanner status={connection} hostConnected={room.connected} />
 
             <div className="flex grow flex-col gap-6 px-6 py-8">
