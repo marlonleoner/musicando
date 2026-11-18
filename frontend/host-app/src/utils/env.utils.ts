@@ -8,11 +8,24 @@ const sameHostUrl = (port: number) => `${window.location.protocol}//${window.loc
 
 const trimSlash = (url: string) => url.replace(/\/+$/, "");
 
-/** URL do backend. Sem configuração, usa o mesmo endereço pelo qual a página foi aberta, na porta 8080. */
+/**
+ * URL do backend. Sem configuração, usa o mesmo endereço pelo qual a página foi aberta, na porta 8080. Um caminho
+ * relativo (ex.: "/api") indica que o backend responde na mesma origem da página, atrás de um proxy.
+ */
 export const apiBaseUrl = (): string => trimSlash(import.meta.env.VITE_API_BASE_URL || sameHostUrl(API_PORT));
 
-/** URL do WebSocket, derivada da URL do backend (http → ws, https → wss). */
-export const socketUrl = (): string => `${apiBaseUrl().replace(/^http/, "ws")}/ws`;
+/**
+ * URL do WebSocket. Com o backend na mesma origem, é "/ws" no endereço da página; senão, é derivada da URL do backend
+ * (http → ws, https → wss).
+ */
+export const socketUrl = (): string => {
+    const base = apiBaseUrl();
+    if (base.startsWith("/")) {
+        return `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
+    }
+
+    return `${base.replace(/^http/, "ws")}/ws`;
+};
 
 /** Link do player-app que o QR code abre, já com o código da sala. */
 export const playerJoinUrl = (code: string): string => {
