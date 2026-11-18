@@ -37,6 +37,8 @@ const MESSAGES: Partial<Record<ErrorCode, string>> = {
     ROOM_FULL: "A sala está cheia.",
     NICKNAME_TAKEN: "Esse apelido já está em uso nessa sala. Escolha outro.",
     INVALID_NICKNAME: "Use de 2 a 16 caracteres: letras, números, espaço, ponto, hífen ou sublinhado.",
+    AVATAR_TAKEN: "Esse personagem acabou de ser escolhido por outro jogador. Escolha outro.",
+    INVALID_AVATAR: "Esse personagem não existe.",
     FORBIDDEN: "Somente o VIP pode fazer isso.",
     INVALID_SETTINGS: "Confira a configuração: escolha uma playlist e as opções disponíveis.",
     PLAYLIST_NOT_FOUND: "Playlist não encontrada.",

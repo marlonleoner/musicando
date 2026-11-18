@@ -9,6 +9,7 @@ import com.marlonleoner.musicando.handler.socket.command.PlayAgainCommandHandler
 import com.marlonleoner.musicando.handler.socket.command.SocketCommandHandler;
 import com.marlonleoner.musicando.handler.socket.command.StartGameCommandHandler;
 import com.marlonleoner.musicando.handler.socket.command.SubmitAnswerCommandHandler;
+import com.marlonleoner.musicando.handler.socket.command.UpdateAvatarCommandHandler;
 import com.marlonleoner.musicando.handler.socket.command.UpdateSettingsCommandHandler;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,6 +30,7 @@ public enum SocketCommandType {
     KICK_PLAYER(Set.of(RoleEnum.HOST), KickPlayerCommandHandler.class),
     CLOSE_ROOM(Set.of(RoleEnum.HOST), CloseRoomCommandHandler.class),
     UPDATE_SETTINGS(Set.of(RoleEnum.PLAYER), UpdateSettingsCommandHandler.class),
+    UPDATE_AVATAR(Set.of(RoleEnum.PLAYER), UpdateAvatarCommandHandler.class),
     START_GAME(Set.of(RoleEnum.PLAYER), StartGameCommandHandler.class),
     SUBMIT_ANSWER(Set.of(RoleEnum.PLAYER), SubmitAnswerCommandHandler.class),
     PLAY_AGAIN(Set.of(RoleEnum.PLAYER), PlayAgainCommandHandler.class);

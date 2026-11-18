@@ -54,6 +54,16 @@ body {
     animation: rise 0.5s ease-out both;
 }
 
+/* Pulinho em loop dos personagens comemorando. */
+@keyframes hop {
+    0%, 100% { transform: translateY(0); }
+    35%, 55% { transform: translateY(-16%); }
+}
+
+.animate-hop {
+    animation: hop 0.9s ease-in-out infinite;
+}
+
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     20%, 60% { transform: translateX(-8px); }

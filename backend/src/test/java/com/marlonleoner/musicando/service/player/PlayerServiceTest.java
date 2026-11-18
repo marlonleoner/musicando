@@ -8,6 +8,7 @@ import com.marlonleoner.musicando.domain.exception.ObjectNotFoundException;
 import com.marlonleoner.musicando.fixture.Fixture;
 import com.marlonleoner.musicando.repository.PlayerRepository;
 import com.marlonleoner.musicando.service.game.GameLocks;
+import com.marlonleoner.musicando.validator.AvatarValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
+import java.util.random.RandomGenerator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,6 +43,9 @@ class PlayerServiceTest {
     @Spy
     private GameLocks locks = new GameLocks();
 
+    @Spy
+    private RandomGenerator random = new Random(42);
+
     @InjectMocks
     private PlayerService service;
 
@@ -56,9 +62,10 @@ class PlayerServiceTest {
         final Room room = Fixture.make(Room.class);
         when(repository.save(any(Player.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        final Player player = service.createAndSave("Marlon", room);
+        final Player player = service.createAndSave("Marlon", room, "robot");
 
         assertThat(player.getNickname()).isEqualTo("Marlon");
+        assertThat(player.getAvatar()).isEqualTo("robot");
         assertThat(player.getRoom()).isEqualTo(room);
         assertThat(player.getId()).isNotBlank();
         assertThat(player.getSecret()).isNotBlank().isNotEqualTo(player.getId());
@@ -255,5 +262,45 @@ class PlayerServiceTest {
         service.ensureOwner(CODE);
 
         verify(locks).execute(eq(CODE), any(Runnable.class));
+    }
+
+    @Test
+    void shouldPickAvatarNotUsedByOtherPlayersWhenChoosingFreeAvatar() {
+        final List<String> taken = AvatarValidator.AVATARS.subList(0, AvatarValidator.AVATARS.size() - 2);
+        final List<Player> players = new ArrayList<>(taken.stream().map(PlayerServiceTest::playerWithAvatar).toList());
+        players.add(playerWithAvatar(null));
+
+        assertThat(service.freeAvatar(players)).get().isIn(AvatarValidator.AVATARS.subList(AvatarValidator.AVATARS.size() - 2,
+                AvatarValidator.AVATARS.size()));
+    }
+
+    @Test
+    void shouldPickAnyAvatarWhenRoomHasNoPlayers() {
+        assertThat(service.freeAvatar(null)).get().isIn(AvatarValidator.AVATARS);
+        assertThat(service.freeAvatar(List.of())).get().isIn(AvatarValidator.AVATARS);
+    }
+
+    @Test
+    void shouldReturnEmptyWhenEveryAvatarIsInUse() {
+        final List<Player> players = AvatarValidator.AVATARS.stream().map(PlayerServiceTest::playerWithAvatar).toList();
+
+        assertThat(service.freeAvatar(players)).isEmpty();
+    }
+
+    @Test
+    void shouldSaveNewAvatarWhenUpdatingAvatar() {
+        final Player player = playerWithAvatar("alien");
+
+        service.updateAvatar(player, "robot");
+
+        assertThat(player.getAvatar()).isEqualTo("robot");
+        verify(repository).save(player);
+    }
+
+    private static Player playerWithAvatar(final String avatar) {
+        final Player player = Fixture.make(Player.class);
+        player.setAvatar(avatar);
+
+        return player;
     }
 }

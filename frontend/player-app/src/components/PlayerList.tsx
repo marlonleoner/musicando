@@ -1,4 +1,5 @@
 import type { Player } from "../types/protocol";
+import Avatar from "./Avatar";
 
 interface IPlayerList {
     players: Player[];
@@ -21,6 +22,7 @@ const PlayerList = ({ players, currentPlayerId }: IPlayerList) => (
                 <span
                     className={`h-2.5 w-2.5 shrink-0 rounded-full ${player.connected ? "bg-emerald-400" : "bg-white/30"}`}
                 />
+                <Avatar avatar={player.avatar} kind="face" className="h-8 w-8 shrink-0" />
                 <span className="truncate font-semibold">{player.nickname}</span>
                 {player.id === currentPlayerId && <span className="text-xs text-white/70">(você)</span>}
                 {player.owner && (

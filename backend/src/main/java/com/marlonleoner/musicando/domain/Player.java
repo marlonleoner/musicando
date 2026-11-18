@@ -22,7 +22,10 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true, exclude = "room")
 @SuperBuilder
 @Entity
-@Table(name = "tb_player", uniqueConstraints = @UniqueConstraint(name = "uk_player_room_nickname", columnNames = {"room_id", "nickname"}))
+@Table(name = "tb_player", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_player_room_nickname", columnNames = {"room_id", "nickname"}),
+    @UniqueConstraint(name = "uk_player_room_avatar", columnNames = {"room_id", "avatar"})
+})
 public class Player extends BaseEntity {
 
     private String sessionId;
@@ -31,6 +34,11 @@ public class Player extends BaseEntity {
     private final String secret;
 
     private String nickname;
+
+    /**
+     * Personagem escolhido (um dos {@code AvatarValidator.AVATARS}); nulo para jogadores criados antes dos avatares.
+     */
+    private String avatar;
 
     private int score;
 

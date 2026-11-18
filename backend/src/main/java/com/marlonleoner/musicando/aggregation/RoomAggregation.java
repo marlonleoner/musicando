@@ -59,7 +59,8 @@ public class RoomAggregation {
 
     /**
      * Permite que um jogador entre em uma sala que está aguardando jogadores. O apelido é normalizado (caixa alta) e
-     * precisa ser único na sala. O primeiro jogador a entrar se torna o VIP.
+     * precisa ser único na sala. O jogador recebe um personagem livre sorteado, que pode trocar no lobby. O primeiro
+     * jogador a entrar se torna o VIP.
      *
      * @param params código da sala e apelido do jogador
      * @return identificador e segredo do jogador, além do código da sala
@@ -73,8 +74,9 @@ public class RoomAggregation {
 
         // Sob o lock da sala, duas entradas simultâneas não furam o limite de jogadores nem repetem o apelido.
         locks.run(room.getCode(), () -> {
-            JoinRoomValidator.validateRoom(room, playerService.findByRoom(room.getCode()), nickname, roomProperties.maxPlayers());
-            joined.set(playerService.createAndSave(nickname, room));
+            final List<Player> players = playerService.findByRoom(room.getCode());
+            JoinRoomValidator.validateRoom(room, players, nickname, roomProperties.maxPlayers());
+            joined.set(playerService.createAndSave(nickname, room, playerService.freeAvatar(players).orElse(null)));
             playerService.ensureOwner(room.getCode());
         });
 

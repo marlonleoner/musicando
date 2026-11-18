@@ -13,6 +13,8 @@ export type ErrorCode =
     | "ROOM_FULL"
     | "INVALID_NICKNAME"
     | "NICKNAME_TAKEN"
+    | "INVALID_AVATAR"
+    | "AVATAR_TAKEN"
     | "INVALID_COMMAND"
     | "INVALID_SETTINGS"
     | "PLAYLIST_NOT_FOUND"
@@ -36,6 +38,7 @@ export type RoomStateReasonType =
     | "PLAYER_KICKED"
     | "ROOM_CLOSED"
     | "SETTINGS_UPDATED"
+    | "AVATAR_UPDATED"
     | "GAME_STARTED"
     | "GAME_FINISHED"
     | "PLAY_AGAIN";
@@ -43,6 +46,8 @@ export type RoomStateReasonType =
 export interface Player {
     id: string;
     nickname: string;
+    /** Personagem escolhido; nulo para jogadores criados antes dos avatares. */
+    avatar: string | null;
     score: number;
     roundsWon: number;
     owner: boolean;

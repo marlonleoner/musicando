@@ -62,7 +62,7 @@ de uma migration nova** (`V3__...sql`); senão o backend não sobe.
 | Tabela | Conteúdo principal |
 |---|---|
 | `tb_room` | `code` (6 caracteres, único), `secret` da TV, `status`, `connected` (TV conectada), `host_session_id`, `current_match_id`. |
-| `tb_player` | `room_id`, `nickname` (único por sala), `secret`, `owner` (é o VIP), `connected`, `session_id`, `score` e `rounds_won` da última partida. |
+| `tb_player` | `room_id`, `nickname` (único por sala), `avatar` (personagem, único por sala), `secret`, `owner` (é o VIP), `connected`, `session_id`, `score` e `rounds_won` da última partida. |
 | `tb_match` | Configuração da partida (playlist, `rounds`, `round_duration`), `status` e `end_time`. Uma sala tem várias partidas ao longo do tempo; a atual é `tb_room.current_match_id`. |
 
 ### Redis
@@ -162,6 +162,7 @@ handler do tipo.
 | `KICK_PLAYER` | TV | `{ playerId }` | Manda `KICKED` ao jogador, remove-o e repassa o VIP se for preciso. |
 | `CLOSE_ROOM` | TV | | Para a partida e encerra a sala (`CLOSED`). |
 | `UPDATE_SETTINGS` | VIP | `{ playlistId?, rounds?, roundDuration? }` | Só no lobby. Com playlist nova, sorteia a música do lobby. |
+| `UPDATE_AVATAR` | jogador | `{ avatar }` | Só no lobby. Troca o personagem, desde que nenhum outro jogador da sala esteja com ele. |
 | `START_GAME` | VIP | | Valida, sorteia as rodadas e inicia o `GameEngine`. |
 | `SUBMIT_ANSWER` | jogador | `{ round, option }` | Registra a resposta da rodada (`option` é o índice de 0 a 3). |
 | `PLAY_AGAIN` | VIP | | Depois do fim, volta todos para o lobby com a mesma configuração. |
@@ -205,7 +206,8 @@ converte para o próprio relógio, e assim relógios diferentes entre servidor e
 1. `JoinRoomValidator.normalizeNickname` tira os espaços extras, converte para caixa alta e exige de 2 a 16
    caracteres: letras, números, espaço, `.`, `_` e `-`.
 2. Sob o lock da sala, confere se a sala está `WAITING`, se não está cheia (`ROOM_MAX_PLAYERS`) e se o apelido não está
-   em uso, e então cria o jogador. O índice único `(room_id, nickname)` é a última barreira.
+   em uso, e então cria o jogador com um personagem livre sorteado (`PlayerService.freeAvatar`). Os índices únicos
+   `(room_id, nickname)` e `(room_id, avatar)` são a última barreira.
 3. `PlayerService.ensureOwner` garante um VIP: o primeiro a entrar vira VIP.
 4. `ROOM_STATE` (`PLAYER_JOINED`) para a sala.
 
@@ -401,6 +403,7 @@ Em prd, `server.forward-headers-strategy=native` faz o rate limit usar o IP real
 | Opções de rodadas e duração | `MatchSettingsValidator`. O frontend lê de `GET /music/options`. |
 | Quantas músicas tocam no lobby | `LobbyMusicService.TRACKS`. |
 | Como os títulos são comparados | `TitleNormalizer`. |
+| Personagens disponíveis | `AvatarValidator.AVATARS`, `avatar.utils.ts` do celular e `tools/avatars/render_avatars.py`; as imagens são geradas pelo script (veja `tools/avatars/README.md`). |
 
 **Mudar o banco**
 1. Altere a entidade em `domain/`.

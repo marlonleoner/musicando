@@ -119,7 +119,7 @@ class SocketProtocolIntegrationTest {
     void shouldNotifyRoomWhenPlayerConnects() throws Exception {
         final StompSession host = connect("host", room.getCode(), room.getId(), room.getSecret());
         final BlockingQueue<JsonNode> roomEvents = subscribe(host, "/topic/room/" + room.getCode());
-        final Player player = playerService.createAndSave("Ana", roomService.getOrException(room.getCode()));
+        final Player player = playerService.createAndSave("Ana", roomService.getOrException(room.getCode()), "robot");
 
         connect("player", room.getCode(), player.getId(), player.getSecret());
 
@@ -136,7 +136,7 @@ class SocketProtocolIntegrationTest {
      */
     @Test
     void shouldCloseConnectionWhenPlayerSubscribesToHostTopic() throws Exception {
-        final Player player = playerService.createAndSave("Ana", roomService.getOrException(room.getCode()));
+        final Player player = playerService.createAndSave("Ana", roomService.getOrException(room.getCode()), "robot");
         final StompSession session = connect("player", room.getCode(), player.getId(), player.getSecret());
 
         subscribe(session, "/topic/room/" + room.getCode() + "/host");
