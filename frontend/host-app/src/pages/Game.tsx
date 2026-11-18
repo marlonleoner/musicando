@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import CloseRoomButton from "../components/CloseRoomButton";
+import FastestSidebar from "../components/FastestSidebar";
 import Jumbotron from "../components/Jumbotron";
 import RevealPanel from "../components/RevealPanel";
 import RoundDots from "../components/RoundDots";
@@ -69,7 +70,7 @@ export default function Game({ room }: IGame) {
                 </button>
             )}
 
-            <main className="flex min-h-0 grow flex-col items-center justify-center gap-5 px-10 pb-4 pt-40 2xl:pt-44">
+            <main className="flex min-h-0 grow flex-col items-center justify-center-safe gap-5 overflow-hidden px-10 pb-4 pt-40 2xl:pt-44">
                 <RoundContent
                     room={room}
                     round={round}
@@ -77,6 +78,8 @@ export default function Game({ room }: IGame) {
                     hasPreview={Boolean(audio?.previewUrl)}
                 />
             </main>
+
+            {round?.phase === "REVEAL" && round.ended && <FastestSidebar ended={round.ended} players={room.players} />}
 
             <ScoreFooter room={room} round={round} />
         </div>
@@ -110,7 +113,7 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
     }
 
     if (round.phase === "REVEAL" && round.ended) {
-        return <RevealPanel ended={round.ended} remainingMs={remainingMs} players={room.players} />;
+        return <RevealPanel ended={round.ended} />;
     }
 
     const connected = room.players.filter((player) => player.connected);

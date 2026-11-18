@@ -1,80 +1,47 @@
-import type { Player, RoundEndedPayload } from "../types/protocol";
-import { formatPoints, formatSeconds, ordinal } from "../utils/round.utils";
-import Avatar from "./Avatar";
+import type { RoundEndedPayload } from "../types/protocol";
 
 interface IRevealPanel {
     ended: RoundEndedPayload;
-    remainingMs: number;
-    /** Jogadores da sala, para mostrar o personagem de cada um. */
-    players: Player[];
 }
 
-const STAGGER_MS = 120;
-
-/** Revelação da rodada na TV: capa, resposta certa e os mais rápidos que acertaram. O placar fica no rodapé. */
-const RevealPanel = ({ ended, remainingMs, players }: IRevealPanel) => {
-    const avatarOf = (playerId: string) => players.find((player) => player.id === playerId)?.avatar ?? null;
-
-    return (
-        <div className="flex w-full max-w-4xl flex-col items-center gap-8 2xl:max-w-6xl">
-            <div className="flex items-center gap-8">
-                {ended.cover && (
-                    <img
-                        src={ended.cover}
-                        alt=""
-                        className="animate-pop aspect-square w-40 rounded-2xl object-cover shadow-2xl shadow-black/50 2xl:w-64"
-                    />
+/**
+ * Revelação da rodada na TV: capa, resposta certa e artista. Os mais rápidos ficam na lateral esquerda
+ * ({@link FastestSidebar}) e o placar no rodapé. As laterais da revelação ficam livres para a lista dos mais rápidos,
+ * sem tirar a resposta do centro da tela.
+ */
+const RevealPanel = ({ ended }: IRevealPanel) => (
+    <div className="flex w-full flex-col items-center gap-[2.5vh] px-[clamp(17rem,23vw,28rem)]">
+        <div className="flex items-center gap-[3vh]">
+            {ended.cover && (
+                <img
+                    src={ended.cover}
+                    alt=""
+                    className="animate-pop aspect-square w-[clamp(7rem,24vh,18rem)] shrink-0 rounded-2xl object-cover shadow-2xl shadow-black/50"
+                />
+            )}
+            <div className="flex flex-col gap-[1vh]">
+                <span className="animate-rise text-[clamp(1rem,2.4vh,1.875rem)] uppercase text-white/60">
+                    A resposta era
+                </span>
+                <span className="animate-pop text-balance text-[clamp(2rem,6.5vh,5rem)] font-bold leading-tight text-amber-300">
+                    {ended.answer}
+                </span>
+                {ended.artist && (
+                    <span
+                        className="animate-rise text-[clamp(1.25rem,3.4vh,2.5rem)] text-white/80"
+                        style={{ animationDelay: "200ms" }}
+                    >
+                        {ended.artist}
+                    </span>
                 )}
-                <div className="flex flex-col gap-2">
-                    <span className="animate-rise text-xl uppercase text-white/60 2xl:text-3xl">A resposta era</span>
-                    <span className="animate-pop text-5xl font-bold text-amber-300 2xl:text-7xl">{ended.answer}</span>
-                    {ended.artist && (
-                        <span
-                            className="animate-rise text-2xl text-white/80 2xl:text-4xl"
-                            style={{ animationDelay: "200ms" }}
-                        >
-                            {ended.artist}
-                        </span>
-                    )}
-                </div>
             </div>
-
-            <section className="flex w-full flex-col gap-3 rounded-2xl bg-white/10 p-6">
-                <h2 className="text-2xl font-bold text-white 2xl:text-4xl">Mais rápidos</h2>
-                {ended.fastest.length === 0 ? (
-                    <p className="text-xl text-white/60 2xl:text-3xl">Ninguém acertou essa!</p>
-                ) : (
-                    <ol className="flex flex-col gap-2">
-                        {ended.fastest.map((result, index) => (
-                            <li
-                                key={result.playerId}
-                                className="animate-rise flex items-center gap-4 text-2xl text-white 2xl:text-4xl"
-                                style={{ animationDelay: `${(index + 1) * STAGGER_MS}ms` }}
-                            >
-                                <span className="w-10 font-bold text-amber-300 2xl:w-16">{ordinal(index + 1)}</span>
-                                <Avatar
-                                    avatar={avatarOf(result.playerId)}
-                                    kind="cheer"
-                                    className="animate-hop h-14 w-14 shrink-0 2xl:h-20 2xl:w-20"
-                                />
-                                <span className="grow truncate font-semibold">{result.nickname}</span>
-                                <span className="text-white/60">{formatSeconds(result.responseTimeMs)}</span>
-                                <span className="w-24 text-right font-bold text-emerald-400 2xl:w-36">
-                                    +{formatPoints(result.points)}
-                                </span>
-                            </li>
-                        ))}
-                    </ol>
-                )}
-            </section>
-
-            <p className="text-xl text-white/60 2xl:text-3xl">
-                {ended.lastRound
-                    ? "Resultado final em instantes…"
-                    : `Próxima rodada em ${Math.ceil(remainingMs / 1000)} s`}
-            </p>
         </div>
-    );
-};
+
+        {/* O tempo até a próxima rodada aparece na barra do letreiro. */}
+        {ended.lastRound && (
+            <p className="text-[clamp(1rem,2.4vh,1.875rem)] text-white/60">Resultado final em instantes…</p>
+        )}
+    </div>
+);
 
 export default RevealPanel;
