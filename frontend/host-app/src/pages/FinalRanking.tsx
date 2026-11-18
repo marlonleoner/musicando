@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import Avatar from "../components/Avatar";
 import Confetti from "../components/Confetti";
 import Logo from "../components/Logo";
 import type { Player, RoomState } from "../types/protocol";
@@ -44,6 +45,12 @@ export default function FinalRanking({ room }: IFinalRanking) {
                             className="animate-rise flex w-48 flex-col items-center gap-2 2xl:w-72"
                             style={{ animationDelay: `${delay}ms` }}
                         >
+                            <Avatar
+                                avatar={player.avatar}
+                                kind="cheer"
+                                className="animate-hop h-32 w-32 2xl:h-48 2xl:w-48"
+                                alt=""
+                            />
                             <span className="max-w-full truncate text-2xl font-bold text-white 2xl:text-4xl">
                                 {player.nickname}
                             </span>
@@ -67,6 +74,7 @@ export default function FinalRanking({ room }: IFinalRanking) {
                             style={{ animationDelay: `${1200 + index * 100}ms` }}
                         >
                             <span className="w-14 font-bold text-white/60">{ordinal(index + PODIUM.length + 1)}</span>
+                            <Avatar avatar={player.avatar} kind="face" className="h-12 w-12 shrink-0" />
                             <span className="grow truncate font-semibold">{player.nickname}</span>
                             <span className="text-lg text-white/60 2xl:text-2xl">{player.roundsWon} acertos</span>
                             <span className="w-32 text-right font-bold">{formatPoints(player.score)}</span>

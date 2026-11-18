@@ -1,11 +1,13 @@
 import { useState } from "react";
 import type { Player } from "../types/protocol";
+import Avatar from "./Avatar";
 
 interface IPlayerList {
     players: Player[];
     onKick: (playerId: string) => void;
 }
 
+/** Jogadores do lobby em cards de corpo inteiro, com o personagem animado. */
 const PlayerList = ({ players, onKick }: IPlayerList) => {
     const [confirming, setConfirming] = useState<string | null>(null);
 
@@ -14,30 +16,27 @@ const PlayerList = ({ players, onKick }: IPlayerList) => {
     }
 
     return (
-        <ul className="grid w-full grid-cols-2 gap-3 lg:grid-cols-3">
+        <ul className="grid w-full grid-cols-3 gap-3 md:grid-cols-4 xl:grid-cols-6">
             {players.map((player) => (
                 <li
                     key={player.id}
-                    className={`flex items-center justify-between gap-2 rounded-xl px-4 py-3 ${
-                        player.connected ? "bg-[#44277B]" : "bg-white/10 text-white/50"
+                    className={`animate-pop relative flex flex-col items-center gap-1 rounded-2xl px-2 pb-3 pt-2 ${
+                        player.connected ? (player.owner ? "bg-[#5b3cc4]" : "bg-[#44277B]") : "bg-white/10 opacity-50"
                     }`}
                 >
-                    <div className="flex min-w-0 items-center gap-2">
-                        <span
-                            className={`h-2.5 w-2.5 shrink-0 rounded-full ${player.connected ? "bg-emerald-400" : "bg-white/30"}`}
-                            title={player.connected ? "Conectado" : "Reconectando…"}
-                        />
-                        <span className="truncate text-lg font-semibold">{player.nickname}</span>
-                        {player.owner && (
-                            <span className="shrink-0 rounded-md bg-amber-400 px-1.5 text-xs font-bold text-black">
-                                VIP
-                            </span>
-                        )}
-                    </div>
+                    <Avatar avatar={player.avatar} kind="idle" className="h-32 w-32 2xl:h-44 2xl:w-44" />
+                    <span className="max-w-full truncate text-lg font-semibold text-white 2xl:text-2xl">
+                        {player.nickname}
+                    </span>
+                    {player.owner ? (
+                        <span className="rounded-md bg-amber-400 px-1.5 text-xs font-bold text-black">VIP</span>
+                    ) : (
+                        <span className="text-xs text-white/60">{player.connected ? "Pronto" : "Reconectando…"}</span>
+                    )}
                     {confirming === player.id ? (
                         <button
                             type="button"
-                            className="shrink-0 rounded-md bg-red-500 px-2 py-1 text-xs font-bold"
+                            className="absolute right-2 top-2 rounded-md bg-red-500 px-2 py-1 text-xs font-bold"
                             onClick={() => {
                                 setConfirming(null);
                                 onKick(player.id);
@@ -49,7 +48,7 @@ const PlayerList = ({ players, onKick }: IPlayerList) => {
                     ) : (
                         <button
                             type="button"
-                            className="shrink-0 text-white/40 hover:text-red-400"
+                            className="absolute right-2 top-2 text-white/30 hover:text-red-400"
                             title={`Remover ${player.nickname}`}
                             onClick={() => setConfirming(player.id)}
                         >

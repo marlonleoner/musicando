@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Avatar from "../components/Avatar";
 import Equalizer from "../components/Equalizer";
 import Logo from "../components/Logo";
 import RevealPanel from "../components/RevealPanel";
@@ -109,7 +110,12 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
 
     if (round.phase === "REVEAL" && round.ended) {
         return (
-            <RevealPanel ended={round.ended} previousScoreboard={round.previousScoreboard} remainingMs={remainingMs} />
+            <RevealPanel
+                ended={round.ended}
+                previousScoreboard={round.previousScoreboard}
+                remainingMs={remainingMs}
+                players={room.players}
+            />
         );
     }
 
@@ -134,7 +140,10 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
                                 : "bg-white/10 text-white/50"
                         }`}
                     >
-                        {player.nickname}
+                        <span className="flex items-center gap-2">
+                            <Avatar avatar={player.avatar} kind="face" className="h-8 w-8 2xl:h-12 2xl:w-12" />
+                            {player.nickname}
+                        </span>
                     </li>
                 ))}
             </ul>
