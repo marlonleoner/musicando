@@ -14,6 +14,7 @@ import com.marlonleoner.musicando.dto.socket.SocketCommand;
 import com.marlonleoner.musicando.dto.socket.SocketErrorPayload;
 import com.marlonleoner.musicando.dto.socket.SocketEvent;
 import com.marlonleoner.musicando.service.game.GameEngine;
+import com.marlonleoner.musicando.service.game.LobbyMusicService;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import com.marlonleoner.musicando.service.socket.SocketCommandDispatcher;
 import com.marlonleoner.musicando.service.socket.SocketService;
@@ -47,6 +48,9 @@ class SocketControllerTest {
     @Mock
     private GameEngine gameEngine;
 
+    @Mock
+    private LobbyMusicService lobbyMusicService;
+
     @InjectMocks
     private SocketController controller;
 
@@ -67,6 +71,7 @@ class SocketControllerTest {
 
         assertThat(controller.handleRoomSnapshot(PRINCIPAL)).isEqualTo("{}");
         verify(gameEngine).sendCurrentPhase(PRINCIPAL);
+        verify(lobbyMusicService).sendCurrent(PRINCIPAL);
     }
 
     @Test

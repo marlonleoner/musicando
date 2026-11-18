@@ -20,6 +20,7 @@ const GAME_EVENTS: ReadonlySet<string> = new Set([
     "ROUND_COUNTDOWN",
     "ROUND_STARTED",
     "ROUND_AUDIO",
+    "LOBBY_AUDIO",
     "ANSWER_RECEIVED",
     "ROUND_ENDED",
 ]);

@@ -1,7 +1,9 @@
 /**
  * Efeitos sonoros curtos gerados pelo navegador (Web Audio), sem arquivos de áudio. Funcionam depois de um clique na
- * página, pela mesma regra do navegador que vale para a música.
+ * página, pela mesma regra do navegador que vale para a música. Seguem o volume escolhido na TV.
  */
+import { effectiveVolume } from "./volume.utils";
+
 let context: AudioContext | null = null;
 
 const audioContext = (): AudioContext | null => {
@@ -24,7 +26,8 @@ const tone = (
     type: OscillatorType = "triangle",
     volume = 0.15,
 ) => {
-    const ctx = audioContext();
+    const level = volume * effectiveVolume();
+    const ctx = level > 0 ? audioContext() : null;
     if (!ctx) {
         return;
     }
@@ -35,7 +38,7 @@ const tone = (
 
     oscillator.type = type;
     oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(volume, start);
+    gain.gain.setValueAtTime(level, start);
     gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
     oscillator.connect(gain).connect(ctx.destination);
     oscillator.start(start);

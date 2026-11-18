@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RoomAudio, RoundView } from "../types/protocol";
+import { effectiveVolume, subscribeVolume } from "../utils/volume.utils";
 
 /** Duração do fade out no fim da revelação. */
 const FADE_MS = 2000;
@@ -14,6 +15,8 @@ const FADE_STEP_MS = 50;
 export const useRoundAudio = (audio: RoomAudio | null, round: RoundView | null) => {
     const elementRef = useRef<HTMLAudioElement | null>(null);
     const roundRef = useRef<RoundView | null>(round);
+    /** Fração do volume escolhido que está tocando (cai até zero no fade out). */
+    const gainRef = useRef(1);
     const [blocked, setBlocked] = useState(false);
     const previewUrl = audio && round && audio.round === round.round ? audio.previewUrl : null;
     const playing = round?.phase === "PLAYING" && Boolean(previewUrl);
@@ -23,6 +26,16 @@ export const useRoundAudio = (audio: RoomAudio | null, round: RoundView | null) 
     useEffect(() => {
         roundRef.current = round;
     }, [round]);
+
+    useEffect(
+        () =>
+            subscribeVolume(() => {
+                if (elementRef.current) {
+                    elementRef.current.volume = effectiveVolume() * gainRef.current;
+                }
+            }),
+        [],
+    );
 
     useEffect(() => {
         if (!previewUrl) {
@@ -49,7 +62,8 @@ export const useRoundAudio = (audio: RoomAudio | null, round: RoundView | null) 
         }
 
         const elapsedMs = current.phaseDurationMs - (current.endsAt - Date.now());
-        element.volume = 1;
+        gainRef.current = 1;
+        element.volume = effectiveVolume();
         element.currentTime = Math.max(0, elapsedMs / 1000);
         element
             .play()
@@ -90,11 +104,12 @@ export const useRoundAudio = (audio: RoomAudio | null, round: RoundView | null) 
         let fade: number | undefined;
         const start = window.setTimeout(
             () => {
-                const initialVolume = element.volume;
+                const initialGain = gainRef.current;
                 const startedAt = Date.now();
                 fade = window.setInterval(() => {
                     const progress = Math.min(1, (Date.now() - startedAt) / FADE_MS);
-                    element.volume = initialVolume * (1 - progress);
+                    gainRef.current = initialGain * (1 - progress);
+                    element.volume = effectiveVolume() * gainRef.current;
                     if (progress >= 1) {
                         window.clearInterval(fade);
                         element.pause();

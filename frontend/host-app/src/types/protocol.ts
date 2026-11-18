@@ -102,6 +102,11 @@ export interface RoundAudioPayload {
     offsetMs: number;
 }
 
+/** Prévias que a TV toca de fundo no lobby. */
+export interface LobbyAudioPayload {
+    previewUrls: string[];
+}
+
 export interface AnswerReceivedPayload {
     round: number;
     playerId: string;
@@ -141,6 +146,7 @@ export type GameEvent =
     | { type: "ROUND_COUNTDOWN"; payload: RoundCountdownPayload; timestamp: string }
     | { type: "ROUND_STARTED"; payload: RoundStartedPayload; timestamp: string }
     | { type: "ROUND_AUDIO"; payload: RoundAudioPayload; timestamp: string }
+    | { type: "LOBBY_AUDIO"; payload: LobbyAudioPayload; timestamp: string }
     | { type: "ANSWER_RECEIVED"; payload: AnswerReceivedPayload; timestamp: string }
     | { type: "ROUND_ENDED"; payload: RoundEndedPayload; timestamp: string };
 

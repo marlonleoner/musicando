@@ -8,6 +8,7 @@ import com.marlonleoner.musicando.dto.socket.SocketCommand;
 import com.marlonleoner.musicando.dto.socket.SocketErrorPayload;
 import com.marlonleoner.musicando.dto.socket.SocketEvent;
 import com.marlonleoner.musicando.service.game.GameEngine;
+import com.marlonleoner.musicando.service.game.LobbyMusicService;
 import com.marlonleoner.musicando.service.socket.RoomStateNotifier;
 import com.marlonleoner.musicando.service.socket.SocketCommandDispatcher;
 import com.marlonleoner.musicando.service.socket.SocketService;
@@ -44,6 +45,8 @@ public class SocketController {
 
     private final GameEngine gameEngine;
 
+    private final LobbyMusicService lobbyMusicService;
+
     @MessageMapping(SocketDestinations.COMMAND_MAPPING)
     public void handleCommand(@Payload SocketCommand command, Principal principal) throws BaseException {
         dispatcher.dispatch((SocketPrincipal) principal, command);
@@ -51,13 +54,15 @@ public class SocketController {
 
     /**
      * Foto inicial da sala, respondida diretamente a quem se inscreveu em {@code /musicando/room}. Com uma partida em
-     * andamento, a etapa atual da rodada é enviada em seguida pela fila do participante.
+     * andamento, a etapa atual da rodada é enviada em seguida pela fila do participante; no lobby, a TV recebe a música de
+     * fundo.
      */
     @SubscribeMapping(SocketDestinations.ROOM_SNAPSHOT_MAPPING)
     public String handleRoomSnapshot(Principal principal) throws BaseException {
         final SocketPrincipal socketPrincipal = (SocketPrincipal) principal;
         final String snapshot = socketService.toJson(notifier.snapshot(socketPrincipal));
         gameEngine.sendCurrentPhase(socketPrincipal);
+        lobbyMusicService.sendCurrent(socketPrincipal);
 
         return snapshot;
     }

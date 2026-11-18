@@ -6,6 +6,7 @@ import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.GameAlreadyStartedException;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
+import com.marlonleoner.musicando.service.game.LobbyMusicService;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.music.MusicService;
 import com.marlonleoner.musicando.service.player.PlayerService;
@@ -21,7 +22,7 @@ import java.util.Objects;
 /**
  * {@code UPDATE_SETTINGS} (somente VIP, com a sala aguardando jogadores). Payload com qualquer combinação dos campos:
  * {@code { "playlistId": "...", "rounds": 10, "roundDuration": 20 }}. Todos na sala recebem o {@code ROOM_STATE} com
- * a nova configuração.
+ * a nova configuração. Ao trocar a playlist, a TV recebe também a nova música de fundo do lobby.
  */
 @Component
 @RequiredArgsConstructor
@@ -42,6 +43,8 @@ public class UpdateSettingsCommandHandler implements SocketCommandHandler {
     private final MusicService musicService;
 
     private final RoomStateNotifier notifier;
+
+    private final LobbyMusicService lobbyMusicService;
 
     @Override
     public void handle(SocketPrincipal principal, JsonNode payload) throws BaseException {
@@ -71,6 +74,10 @@ public class UpdateSettingsCommandHandler implements SocketCommandHandler {
         }
 
         notifier.broadcast(principal.roomCode(), RoomStateReason.SETTINGS_UPDATED, principal.participantId());
+
+        if (hasField(payload, PLAYLIST_ID_FIELD)) {
+            lobbyMusicService.refresh(principal.roomCode(), match.getPlaylistId());
+        }
     }
 
     private boolean hasField(JsonNode payload, String field) {

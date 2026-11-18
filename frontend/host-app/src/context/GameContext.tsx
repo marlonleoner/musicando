@@ -22,6 +22,7 @@ export const GameProvider = ({ children }: Element) => {
     const [creatingRoom, setCreatingRoom] = useState(false);
     const [round, setRound] = useState<RoundView | null>(null);
     const [audio, setAudio] = useState<RoomAudio | null>(null);
+    const [lobbyAudio, setLobbyAudio] = useState<string[] | null>(null);
     const roomRef = useRef<RoomState | null>(null);
 
     const resetToHome = useCallback(() => {
@@ -30,6 +31,7 @@ export const GameProvider = ({ children }: Element) => {
         setRoom(null);
         setRound(null);
         setAudio(null);
+        setLobbyAudio(null);
         setSession(null);
     }, []);
 
@@ -57,6 +59,10 @@ export const GameProvider = ({ children }: Element) => {
             if (state.status === "WAITING") {
                 setRound(null);
                 setAudio(null);
+            } else {
+                // A música do lobby pode chegar antes da sala voltar ao lobby ("Jogar novamente"), por isso só é
+                // descartada quando a sala sai do lobby.
+                setLobbyAudio(null);
             }
 
             roomRef.current = state;
@@ -68,6 +74,12 @@ export const GameProvider = ({ children }: Element) => {
     const handleGameEvent = useCallback((event: GameEvent) => {
         if (event.type === "ROUND_AUDIO") {
             setAudio({ round: event.payload.round, previewUrl: event.payload.previewUrl });
+
+            return;
+        }
+
+        if (event.type === "LOBBY_AUDIO") {
+            setLobbyAudio(event.payload.previewUrls);
 
             return;
         }
@@ -124,6 +136,7 @@ export const GameProvider = ({ children }: Element) => {
             room,
             round,
             audio,
+            lobbyAudio,
             connection: status,
             creatingRoom,
             createRoom,
@@ -131,7 +144,7 @@ export const GameProvider = ({ children }: Element) => {
             closeRoom,
             reclaimScreen: reclaim,
         }),
-        [session, room, round, audio, status, creatingRoom, createRoom, kickPlayer, closeRoom, reclaim],
+        [session, room, round, audio, lobbyAudio, status, creatingRoom, createRoom, kickPlayer, closeRoom, reclaim],
     );
 
     return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

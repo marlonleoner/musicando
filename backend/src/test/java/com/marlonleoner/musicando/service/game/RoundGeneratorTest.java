@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,5 +103,24 @@ class RoundGeneratorTest {
             assertThat(round.artist()).isEqualTo("Artist " + round.trackId());
             assertThat(round.cover()).isEqualTo("cover-" + round.trackId() + ".jpg");
         });
+    }
+
+    @Test
+    void shouldAvoidLobbyTracksAsAnswersWhenPlaylistHasEnoughOtherTracks() throws PlaylistTooSmallException {
+        final Set<String> avoided = Set.of("1", "2", "3", "4", "5");
+
+        final List<GameRound> generated = generator.generate(tracks(15), 10, avoided);
+
+        assertThat(generated).hasSize(10).extracting(GameRound::trackId).doesNotContainAnyElementsOf(avoided);
+    }
+
+    @Test
+    void shouldUseLobbyTracksAsLastResortWhenPlaylistHasNoOtherTracks() throws PlaylistTooSmallException {
+        final Set<String> avoided = Set.of("1", "2", "3");
+
+        final List<GameRound> generated = generator.generate(tracks(5), 5, avoided);
+
+        assertThat(generated).extracting(GameRound::trackId).containsExactlyInAnyOrder("1", "2", "3", "4", "5");
+        assertThat(generated.subList(0, 2)).extracting(GameRound::trackId).containsExactlyInAnyOrder("4", "5");
     }
 }

@@ -8,11 +8,12 @@ import com.marlonleoner.musicando.domain.exception.BaseException;
 import com.marlonleoner.musicando.domain.exception.GameAlreadyStartedException;
 import com.marlonleoner.musicando.domain.exception.InvalidSettingsException;
 import com.marlonleoner.musicando.domain.exception.NotRoomOwnerException;
+import com.marlonleoner.musicando.domain.exception.PlaylistNotFoundException;
+import com.marlonleoner.musicando.domain.music.MusicPlaylist;
 import com.marlonleoner.musicando.domain.socket.RoomStateReason;
 import com.marlonleoner.musicando.domain.socket.SocketPrincipal;
 import com.marlonleoner.musicando.fixture.Fixture;
-import com.marlonleoner.musicando.domain.exception.PlaylistNotFoundException;
-import com.marlonleoner.musicando.domain.music.MusicPlaylist;
+import com.marlonleoner.musicando.service.game.LobbyMusicService;
 import com.marlonleoner.musicando.service.match.MatchService;
 import com.marlonleoner.musicando.service.music.MusicService;
 import com.marlonleoner.musicando.service.player.PlayerService;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,6 +35,7 @@ import tools.jackson.databind.json.JsonMapper;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -58,6 +61,9 @@ class UpdateSettingsCommandHandlerTest {
     @Mock
     private RoomStateNotifier notifier;
 
+    @Mock
+    private LobbyMusicService lobbyMusicService;
+
     @InjectMocks
     private UpdateSettingsCommandHandler handler;
 
@@ -81,6 +87,7 @@ class UpdateSettingsCommandHandlerTest {
         givenRoom();
         final MusicPlaylist playlist = new MusicPlaylist("123", "Hits", "cover.jpg", 50);
         when(musicService.getPlaylistOrException("123")).thenReturn(playlist);
+        room.getCurrentMatch().setPlaylistId("123");
 
         handler.handle(principal, JSON_MAPPER.readTree("{\"playlistId\":\"123\",\"rounds\":15,\"roundDuration\":30}"));
 
@@ -88,7 +95,9 @@ class UpdateSettingsCommandHandlerTest {
         verify(matchService).updateRounds(match, 15);
         verify(matchService).updateRoundDuration(match, 30);
         verify(matchService).updatePlaylist(match, playlist);
-        verify(notifier).broadcast(room.getCode(), RoomStateReason.SETTINGS_UPDATED, "player-1");
+        final InOrder order = inOrder(notifier, lobbyMusicService);
+        order.verify(notifier).broadcast(room.getCode(), RoomStateReason.SETTINGS_UPDATED, "player-1");
+        order.verify(lobbyMusicService).refresh(room.getCode(), "123");
     }
 
     @Test
@@ -99,7 +108,7 @@ class UpdateSettingsCommandHandlerTest {
 
         verify(matchService).updateRounds(room.getCurrentMatch(), 5);
         verify(matchService, never()).updateRoundDuration(eq(room.getCurrentMatch()), anyInt());
-        verifyNoInteractions(musicService);
+        verifyNoInteractions(musicService, lobbyMusicService);
         verify(notifier).broadcast(room.getCode(), RoomStateReason.SETTINGS_UPDATED, "player-1");
     }
 
@@ -144,7 +153,7 @@ class UpdateSettingsCommandHandlerTest {
         final JsonNode payload = JSON_MAPPER.readTree("{\"playlistId\":\"999\"}");
 
         assertThatThrownBy(() -> handler.handle(principal, payload)).isInstanceOf(PlaylistNotFoundException.class);
-        verifyNoInteractions(notifier);
+        verifyNoInteractions(notifier, lobbyMusicService);
     }
 
     @ParameterizedTest
