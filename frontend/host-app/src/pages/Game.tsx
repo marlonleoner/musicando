@@ -16,7 +16,7 @@ interface IGame {
 export default function Game({ room }: IGame) {
     const { round, audio, closeRoom } = useGame();
     const { blocked, unlock } = useRoundAudio(audio, round);
-    const remainingMs = useCountdown(round ? round.endsAt : null);
+    const remainingMs = useCountdown(round ? round.endsAt : null, round?.phaseDurationMs);
     const [confirmClose, setConfirmClose] = useState(false);
     const countdownSecond = round?.phase === "COUNTDOWN" ? Math.ceil(remainingMs / 1000) : null;
     const revealedRound = round?.phase === "REVEAL" && round.ended ? round.round : null;
