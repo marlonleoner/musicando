@@ -23,11 +23,11 @@ body,
 
 /* Cor sólida de fundo: navegadores do iOS usam essa cor (e não o gradiente) para pintar a barra de status. */
 html {
-    background-color: #2b1a47;
+    background-color: #140c22;
 }
 
 body {
-    background: radial-gradient(circle at top, #2b1a47 0%, #140c22 70%) #2b1a47;
+    background: radial-gradient(circle at top, #2b1a47 0%, #140c22 70%) #140c22;
     color: white;
 }
 
