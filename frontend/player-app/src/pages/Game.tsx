@@ -10,8 +10,24 @@ interface IGame {
     session: PlayerSession;
 }
 
-/** Cores das 4 opções, para o jogador achar a sua escolha rápido. */
+/** Cores e letras das 4 opções, iguais às da TV, para o jogador achar a sua escolha rápido. */
 const OPTION_COLORS = ["bg-rose-500", "bg-sky-500", "bg-amber-500", "bg-emerald-500"];
+
+const OPTION_LETTERS = ["A", "B", "C", "D"];
+
+interface IOptionLetter {
+    index: number;
+    className?: string;
+}
+
+/** Letra da opção (A–D) num quadradinho, como na TV. */
+const OptionLetter = ({ index, className = "" }: IOptionLetter) => (
+    <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/25 text-base font-bold ${className}`}
+    >
+        {OPTION_LETTERS[index]}
+    </span>
+);
 
 export default function Game({ room, session }: IGame) {
     const { round, connection } = usePlayer();
@@ -75,12 +91,13 @@ function RoundContent({ room, session, round, remainingMs }: IRoundContent) {
                             key={option}
                             type="button"
                             disabled={answered}
-                            className={`grow rounded-2xl px-4 py-4 text-lg font-bold leading-tight transition ${OPTION_COLORS[index]} ${
+                            className={`flex grow items-center gap-3 rounded-2xl px-4 py-4 text-left text-lg font-bold leading-tight transition ${OPTION_COLORS[index]} ${
                                 answered && selected !== index ? "opacity-30" : ""
                             } ${selected === index ? "ring-4 ring-white" : ""}`}
                             onClick={() => submitAnswer(index)}
                         >
-                            {option}
+                            <OptionLetter index={index} />
+                            <span className="grow">{option}</span>
                         </button>
                     ))}
                 </div>
@@ -99,6 +116,9 @@ function RoundContent({ room, session, round, remainingMs }: IRoundContent) {
     }
 
     const mine = ended.results.find((result) => result.playerId === session.playerId);
+    // As opções e a escolha vêm do fim da rodada, para aparecerem certas mesmo depois de uma reconexão.
+    const options = ended.options.length > 0 ? ended.options : round.options;
+    const chosen = mine?.option ?? selected;
     const position = ended.scoreboard.findIndex((score) => score.playerId === session.playerId);
     const myScore = position >= 0 ? ended.scoreboard[position].score : 0;
     const change =
@@ -130,20 +150,21 @@ function RoundContent({ room, session, round, remainingMs }: IRoundContent) {
                 </div>
             </div>
 
-            {round.options.length > 0 && (
+            {options.length > 0 && (
                 <div className="flex flex-col gap-2">
-                    {round.options.map((option, index) => (
+                    {options.map((option, index) => (
                         <div
                             key={option}
-                            className={`rounded-xl px-4 py-3 text-center font-semibold ${
+                            className={`flex items-center gap-3 rounded-xl px-4 py-3 font-semibold ${
                                 option === ended.answer
                                     ? "bg-emerald-500"
-                                    : selected === index
+                                    : chosen === index
                                       ? "bg-red-500"
                                       : "bg-white/5 text-white/40"
                             }`}
                         >
-                            {option}
+                            <OptionLetter index={index} className="h-7 w-7 text-sm" />
+                            <span className="grow">{option}</span>
                         </div>
                     ))}
                 </div>
