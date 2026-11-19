@@ -279,7 +279,10 @@ class GameEngineTest {
         assertThat(ended.fastest()).extracting(RoundResultResponse::playerId).containsExactly("bruno", "alice");
         assertThat(ended.scoreboard()).containsExactly(new ScoreResponse("bruno", "BRUNO", 900), new ScoreResponse("alice", "ALICE", 800),
                 new ScoreResponse("carla", "CARLA", 0));
-        assertThat(ended.results()).contains(new RoundResultResponse("carla", "CARLA", false, false, 0, null));
+        assertThat(ended.results()).contains(new RoundResultResponse("carla", "CARLA", false, false, 0, null, null));
+        assertThat(ended.results()).filteredOn(result -> result.playerId().equals("bruno")).extracting(RoundResultResponse::option)
+                .containsExactly(1);
+        assertThat(ended.options()).isEqualTo(state().round().options());
     }
 
     @Test
@@ -291,7 +294,9 @@ class GameEngineTest {
 
         final RoundEndedBroadcast ended = lastRoomPayload(SocketEventType.ROUND_ENDED);
         assertThat(ended.fastest()).isEmpty();
-        assertThat(ended.results()).contains(new RoundResultResponse("bruno", "BRUNO", false, false, 0, null));
+        assertThat(ended.results()).contains(new RoundResultResponse("bruno", "BRUNO", false, false, 0, null, null));
+        assertThat(ended.results()).filteredOn(result -> result.playerId().equals("alice")).extracting(RoundResultResponse::option)
+                .containsExactly(2);
         assertThat(state().getScores()).isEmpty();
     }
 

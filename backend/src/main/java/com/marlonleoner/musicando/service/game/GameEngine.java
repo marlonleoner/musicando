@@ -349,17 +349,18 @@ public class GameEngine {
         final GameRound round = state.round();
 
         return new RoundEndedBroadcast(state.getCurrentRound() + 1, state.totalRounds(), round.answer(), round.artist(), round.cover(),
-                state.lastRound(), remaining, fastest, results, scoreboard);
+                state.lastRound(), remaining, fastest, results, scoreboard, round.options());
     }
 
     private RoundResultResponse result(Player player, GameState state) {
         final PlayerAnswer answer = state.getAnswers().get(player.getId());
 
         if (Objects.isNull(answer)) {
-            return new RoundResultResponse(player.getId(), player.getNickname(), false, false, 0, null);
+            return new RoundResultResponse(player.getId(), player.getNickname(), false, false, 0, null, null);
         }
 
-        return new RoundResultResponse(player.getId(), player.getNickname(), true, answer.correct(), answer.points(), answer.responseTimeMs());
+        return new RoundResultResponse(player.getId(), player.getNickname(), true, answer.correct(), answer.points(), answer.responseTimeMs(),
+                answer.option());
     }
 
     private void sendAudioToHost(String roomCode, GameState state) {
