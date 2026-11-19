@@ -126,6 +126,8 @@ export interface RoundResult {
     correct: boolean;
     points: number;
     responseTimeMs: number | null;
+    /** Índice da opção marcada; nulo se o jogador não respondeu. */
+    option: number | null;
 }
 
 export interface Score {
@@ -145,6 +147,8 @@ export interface RoundEndedPayload {
     fastest: RoundResult[];
     results: RoundResult[];
     scoreboard: Score[];
+    /** Opções da rodada, na ordem em que apareceram. */
+    options: string[];
 }
 
 export type GameEvent =

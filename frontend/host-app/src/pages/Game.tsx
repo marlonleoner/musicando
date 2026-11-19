@@ -10,19 +10,12 @@ import { useCountdown } from "../hooks/useCountdown";
 import { useGame } from "../hooks/useGame";
 import { useRoundAudio } from "../hooks/useRoundAudio";
 import type { RoomState, RoundView } from "../types/protocol";
+import { OPTION_STYLES } from "../utils/option.utils";
 import { playFailure, playSuccess, playTick } from "../utils/sound.utils";
 
 interface IGame {
     room: RoomState;
 }
-
-/** Cores e letras das opções, iguais às dos botões do celular, para o jogador achar a sua escolha. */
-const OPTIONS = [
-    { letter: "A", badge: "bg-rose-500", border: "border-l-rose-500" },
-    { letter: "B", badge: "bg-sky-500", border: "border-l-sky-500" },
-    { letter: "C", badge: "bg-amber-500", border: "border-l-amber-500" },
-    { letter: "D", badge: "bg-emerald-500", border: "border-l-emerald-500" },
-];
 
 export default function Game({ room }: IGame) {
     const { round, audio, closeRoom } = useGame();
@@ -113,7 +106,7 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
     }
 
     if (round.phase === "REVEAL" && round.ended) {
-        return <RevealPanel ended={round.ended} />;
+        return <RevealPanel ended={round.ended} players={room.players} />;
     }
 
     const connected = room.players.filter((player) => player.connected);
@@ -131,13 +124,13 @@ function RoundContent({ room, round, remainingMs, hasPreview }: IRoundContent) {
                 {round.options.map((option, index) => (
                     <li
                         key={option}
-                        className={`animate-rise flex items-center gap-[1.2vw] rounded-2xl border border-l-8 border-white/10 bg-white/5 px-[1.5vw] py-[1.4vh] ${OPTIONS[index]?.border ?? ""}`}
+                        className={`animate-rise flex items-center gap-[1.2vw] rounded-2xl border border-l-8 border-white/10 bg-white/5 px-[1.5vw] py-[1.4vh] ${OPTION_STYLES[index]?.border ?? ""}`}
                         style={{ animationDelay: `${index * 80}ms` }}
                     >
                         <span
-                            className={`flex h-[clamp(1.5rem,5vh,3.5rem)] w-[clamp(1.5rem,5vh,3.5rem)] shrink-0 items-center justify-center rounded-lg text-[clamp(0.875rem,2.6vh,1.875rem)] font-bold text-white ${OPTIONS[index]?.badge ?? "bg-white/20"}`}
+                            className={`flex h-[clamp(1.5rem,5vh,3.5rem)] w-[clamp(1.5rem,5vh,3.5rem)] shrink-0 items-center justify-center rounded-lg text-[clamp(0.875rem,2.6vh,1.875rem)] font-bold text-white ${OPTION_STYLES[index]?.badge ?? "bg-white/20"}`}
                         >
-                            {OPTIONS[index]?.letter}
+                            {OPTION_STYLES[index]?.letter}
                         </span>
                         <span className="text-[clamp(0.875rem,3.2vh,2.25rem)] font-bold leading-tight text-white">
                             {option}
