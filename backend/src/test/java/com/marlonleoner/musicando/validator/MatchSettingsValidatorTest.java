@@ -22,13 +22,13 @@ class MatchSettingsValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {10, 15, 20, 30})
+    @ValueSource(ints = {10, 15, 20})
     void shouldAcceptRoundDurationWhenValueIsAnOption(final int duration) {
         assertThatCode(() -> MatchSettingsValidator.validateRoundDuration(duration)).doesNotThrowAnyException();
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {0, 5, 25, 60})
+    @ValueSource(ints = {0, 5, 25, 30, 60})
     void shouldRejectRoundDurationWhenValueIsNotAnOption(final int duration) {
         assertThatThrownBy(() -> MatchSettingsValidator.validateRoundDuration(duration)).isInstanceOf(InvalidSettingsException.class);
     }

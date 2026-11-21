@@ -62,7 +62,7 @@ class MusicControllerTest {
                 .andExpect(jsonPath("$.defaultRounds").value(10))
                 .andExpect(jsonPath("$.defaultRoundDuration").value(20))
                 .andExpect(jsonPath("$.rounds.length()").value(4))
-                .andExpect(jsonPath("$.roundDurations.length()").value(4));
+                .andExpect(jsonPath("$.roundDurations.length()").value(3));
     }
 
     @Test

@@ -89,11 +89,11 @@ class UpdateSettingsCommandHandlerTest {
         when(musicService.getPlaylistOrException("123")).thenReturn(playlist);
         room.getCurrentMatch().setPlaylistId("123");
 
-        handler.handle(principal, JSON_MAPPER.readTree("{\"playlistId\":\"123\",\"rounds\":15,\"roundDuration\":30}"));
+        handler.handle(principal, JSON_MAPPER.readTree("{\"playlistId\":\"123\",\"rounds\":15,\"roundDuration\":15}"));
 
         final Match match = room.getCurrentMatch();
         verify(matchService).updateRounds(match, 15);
-        verify(matchService).updateRoundDuration(match, 30);
+        verify(matchService).updateRoundDuration(match, 15);
         verify(matchService).updatePlaylist(match, playlist);
         final InOrder order = inOrder(notifier, lobbyMusicService);
         order.verify(notifier).broadcast(room.getCode(), RoomStateReason.SETTINGS_UPDATED, "player-1");

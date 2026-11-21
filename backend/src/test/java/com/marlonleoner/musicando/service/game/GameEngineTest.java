@@ -151,7 +151,7 @@ class GameEngineTest {
                 .matchId("match-id")
                 .roundDuration(20)
                 .rounds(new ArrayList<>(List.of(
-                        new GameRound("t1", "SONG A", List.of("SONG B", "SONG A", "SONG C", "SONG D"), "ARTIST A", "cover-a.jpg"),
+                        new GameRound("t1", "SONG A", List.of("SONG B", "SONG A", "SONG C", "SONG D"), "ARTIST A", "cover-a.jpg", 0.25),
                         new GameRound("t2", "SONG E", List.of("SONG E", "SONG F", "SONG G", "SONG H")))))
                 .build();
     }
@@ -211,7 +211,7 @@ class GameEngineTest {
         assertThat(lastDelay()).isEqualTo(3000);
         assertThat(this.<RoundCountdownBroadcast>lastRoomPayload(SocketEventType.ROUND_COUNTDOWN))
                 .isEqualTo(new RoundCountdownBroadcast(1, 2, 3000));
-        assertThat(lastHostAudio()).isEqualTo(new RoundAudioBroadcast(1, "preview-t1.mp3", 0));
+        assertThat(lastHostAudio()).isEqualTo(new RoundAudioBroadcast(1, "preview-t1.mp3", 0, 0.25, 25000));
     }
 
     @Test
@@ -312,7 +312,7 @@ class GameEngineTest {
         assertThat(state().getCurrentRound()).isEqualTo(1);
         assertThat(state().getAnswers()).isEmpty();
         assertThat(state().getScores()).containsKey("alice");
-        assertThat(lastHostAudio()).isEqualTo(new RoundAudioBroadcast(2, "preview-t2.mp3", 0));
+        assertThat(lastHostAudio()).isEqualTo(new RoundAudioBroadcast(2, "preview-t2.mp3", 0, 0.0, 25000));
     }
 
     @Test
@@ -436,7 +436,7 @@ class GameEngineTest {
         assertThat(state().getPhaseStartedAt()).isEqualTo(clock.millis() - 8000);
         assertThat(lastDelay()).isEqualTo(12000);
         assertThat(this.<RoundStartedBroadcast>lastRoomPayload(SocketEventType.ROUND_STARTED).durationMs()).isEqualTo(12000);
-        assertThat(lastHostAudio()).isEqualTo(new RoundAudioBroadcast(1, "preview-t1.mp3", 8000));
+        assertThat(lastHostAudio()).isEqualTo(new RoundAudioBroadcast(1, "preview-t1.mp3", 8000, 0.25, 25000));
 
         clock.advance(2000);
         engine.submitAnswer(CODE, "alice", 1, 1);

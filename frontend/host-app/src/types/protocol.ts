@@ -105,6 +105,10 @@ export interface RoundAudioPayload {
     round: number;
     previewUrl: string | null;
     offsetMs: number;
+    /** Ponto de início sorteado para a rodada, de 0 a 1. */
+    startFraction: number;
+    /** Quanto a música toca (rodada + revelação), em ms. */
+    playMs: number;
 }
 
 /** Prévias que a TV toca de fundo no lobby. */
@@ -192,6 +196,8 @@ export interface RoundView {
 export interface RoomAudio {
     round: number;
     previewUrl: string | null;
+    startFraction: number;
+    playMs: number;
 }
 
 export interface ApiError {

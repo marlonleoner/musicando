@@ -129,10 +129,10 @@ class MatchServiceTest {
     void shouldStoreRoundDurationWhenUpdatingRoundDuration() {
         final Match match = Fixture.make(Match.class);
 
-        service.updateRoundDuration(match, 30);
+        service.updateRoundDuration(match, 15);
 
         verify(repository).save(match);
-        assertThat(match.getRoundDuration()).isEqualTo(30);
+        assertThat(match.getRoundDuration()).isEqualTo(15);
     }
 
     @Test
