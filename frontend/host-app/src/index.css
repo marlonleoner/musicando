@@ -83,11 +83,25 @@ body {
     animation: confetti-fall linear infinite;
 }
 
+/* "+pontos" que sobe e some sobre o card do placar. */
+@keyframes score-gain {
+    0% { opacity: 0; transform: translateY(40%) scale(0.8); }
+    15% { opacity: 1; transform: translateY(0) scale(1.1); }
+    25% { transform: translateY(0) scale(1); }
+    75% { opacity: 1; transform: translateY(-30%); }
+    100% { opacity: 0; transform: translateY(-90%); }
+}
+
+.animate-score-gain {
+    animation: score-gain 2.4s ease-out 0.3s both;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .animate-pop,
     .animate-rise,
     .animate-shake,
     .animate-confetti,
+    .animate-score-gain,
     .animate-bounce {
         animation: none !important;
     }
