@@ -79,7 +79,7 @@ export default function Join() {
                     onChange={(event) => setNickname(event.target.value.slice(0, NICKNAME_MAX_LENGTH))}
                     autoCapitalize="characters"
                     autoComplete="nickname"
-                    placeholder="Como quer aparecer na TV"
+                    placeholder="Ex.: JOÃO"
                 />
             </label>
 
