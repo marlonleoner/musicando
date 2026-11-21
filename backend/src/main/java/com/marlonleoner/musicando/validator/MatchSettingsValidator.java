@@ -14,7 +14,8 @@ public final class MatchSettingsValidator {
 
     public static final List<Integer> ROUND_OPTIONS = List.of(5, 10, 15, 20);
 
-    public static final List<Integer> ROUND_DURATION_OPTIONS = List.of(10, 15, 20, 30);
+    /** Até 20 s: a prévia da Deezer tem 30 s e precisa cobrir a rodada, a revelação e o início sorteado da música. */
+    public static final List<Integer> ROUND_DURATION_OPTIONS = List.of(10, 15, 20);
 
     public static final int DEFAULT_ROUNDS = 10;
 

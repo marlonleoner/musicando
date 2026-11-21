@@ -22,7 +22,7 @@ import java.util.random.RandomGenerator;
  * Sorteia as rodadas de uma partida a partir das músicas da playlist. Cada rodada tem 1 título correto e 3 títulos
  * errados da mesma playlist, todos normalizados e distintos, em ordem aleatória. As erradas nunca são respostas de rodadas
  * anteriores (o que entregaria que não são a certa) e se espalham pela playlist, para não repetir as mesmas opções a
- * partida toda.
+ * partida toda. Cada rodada também sorteia de que ponto da prévia a música começa a tocar.
  */
 @Component
 @RequiredArgsConstructor
@@ -80,7 +80,7 @@ public class RoundGenerator {
             Collections.shuffle(options, random);
 
             final MusicTrack track = byTitle.get(answer);
-            generated.add(new GameRound(track.id(), answer, options, track.artist(), track.cover()));
+            generated.add(new GameRound(track.id(), answer, options, track.artist(), track.cover(), random.nextDouble()));
         }
 
         return generated;

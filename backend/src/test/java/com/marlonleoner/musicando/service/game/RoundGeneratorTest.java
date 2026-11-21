@@ -168,4 +168,12 @@ class RoundGeneratorTest {
             previousAnswers.add(round.answer());
         }
     }
+
+    @Test
+    void shouldDrawPreviewStartOfEachRoundWhenGeneratingRounds() throws PlaylistTooSmallException {
+        final List<GameRound> generated = generator.generate(tracks(25), 20);
+
+        assertThat(generated).extracting(GameRound::startFraction).allSatisfy(fraction -> assertThat(fraction).isBetween(0.0, 1.0));
+        assertThat(generated).extracting(GameRound::startFraction).doesNotHaveDuplicates();
+    }
 }

@@ -73,7 +73,8 @@ export const GameProvider = ({ children }: Element) => {
 
     const handleGameEvent = useCallback((event: GameEvent) => {
         if (event.type === "ROUND_AUDIO") {
-            setAudio({ round: event.payload.round, previewUrl: event.payload.previewUrl });
+            const { round, previewUrl, startFraction, playMs } = event.payload;
+            setAudio({ round, previewUrl, startFraction, playMs });
 
             return;
         }

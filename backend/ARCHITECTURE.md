@@ -180,7 +180,7 @@ Todos vêm no envelope `SocketEvent { type, reason, payload, timestamp }`.
 | `ROOM_STATE` | `RoomStateBroadcast`: código, status, TV conectada, jogadores, configuração | Qualquer mudança na sala. É sempre a **foto completa**; `reason` (`RoomStateReason`) serve só para avisos na tela. |
 | `ROUND_COUNTDOWN` | `RoundCountdownBroadcast` | Início da contagem de uma rodada. |
 | `ROUND_STARTED` | `RoundStartedBroadcast`: as 4 opções, o tempo restante, quem já respondeu | A música começou. |
-| `ROUND_AUDIO` | `RoundAudioBroadcast`: prévia e `offsetMs` (só a TV) | Junto com a contagem, e ao retomar ou reconectar. |
+| `ROUND_AUDIO` | `RoundAudioBroadcast`: prévia, `offsetMs`, `startFraction` e `playMs` (só a TV) | Junto com a contagem, e ao retomar ou reconectar. |
 | `ANSWER_RECEIVED` | `AnswerReceivedBroadcast`: quem respondeu e quantos faltam | Cada resposta (não revela se acertou). |
 | `ROUND_ENDED` | `RoundEndedBroadcast`: resposta, artista, capa, mais rápidos, resultados e placar | Fim da rodada (revelação). |
 | `LOBBY_AUDIO` | `LobbyAudioBroadcast`: lista de prévias (só a TV) | Playlist escolhida ou trocada, "jogar novamente", TV reconectando no lobby. |
@@ -232,7 +232,7 @@ converte para o próprio relógio, e assim relógios diferentes entre servidor e
 
 `UPDATE_SETTINGS` → `UpdateSettingsCommandHandler`:
 
-1. Valida contra as opções fixas de `MatchSettingsValidator`: rodadas 5/10/15/20 e duração 10/15/20/30 s.
+1. Valida contra as opções fixas de `MatchSettingsValidator`: rodadas 5/10/15/20 e duração 10/15/20 s (no máximo 20 s, para a prévia de 30 s cobrir a rodada, a revelação e o início sorteado).
 2. Busca a playlist na Deezer e grava na partida.
 3. `ROOM_STATE` (`SETTINGS_UPDATED`) para a sala.
 4. Com playlist nova, `LobbyMusicService.refresh`:
@@ -286,8 +286,15 @@ Os tempos de contagem e revelação e quantos "mais rápidos" aparecem vêm de `
 2. Exige pelo menos `max(rodadas, 4)` títulos distintos, senão lança `PlaylistTooSmallException`.
 3. Embaralha e escolhe as respostas, **deixando por último as músicas que tocaram no lobby**. Elas só viram resposta
    se faltar música.
-4. Cada rodada tem a resposta e mais 3 títulos errados da mesma playlist, em ordem aleatória. A rodada guarda
-   `trackId`, título, artista e capa (`GameRound`).
+4. Cada rodada tem a resposta e mais 3 títulos errados da mesma playlist, em ordem aleatória.
+   - As erradas **nunca são respostas de rodadas anteriores** (isso entregaria que não são a certa). Só entram como
+     último recurso, em playlists quase do tamanho do número de rodadas.
+   - As erradas se espalham: vêm primeiro as músicas que ainda não apareceram como opção, depois as que apareceram
+     menos vezes.
+5. Cada rodada sorteia também o **ponto de início da prévia** (`startFraction`, de 0 a 1). A TV converte em segundos com
+   a duração real da prévia: início = `startFraction × (duração − playMs)`, em que `playMs` é a rodada mais a revelação
+   (a música toca nas duas). Uma prévia mais curta só encolhe o trecho possível; no pior caso, começa do 0.
+6. A rodada guarda `trackId`, título, artista, capa e `startFraction` (`GameRound`).
 
 O sorteio usa o bean `RandomGenerator` (`RandomConfiguration`). Nos testes, ele é trocado por um `Random` com semente
 fixa.

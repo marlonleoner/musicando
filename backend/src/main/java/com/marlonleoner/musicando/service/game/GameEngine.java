@@ -377,7 +377,8 @@ public class GameEngine {
         final long offset = state.getPhase() == GamePhase.PLAYING ? roundDurationMs(state) - remainingMs(state) : 0;
 
         return SocketEvent.of(SocketEventType.ROUND_AUDIO,
-                new RoundAudioBroadcast(state.getCurrentRound() + 1, state.getPreviewUrl(), Math.max(0, offset)));
+                new RoundAudioBroadcast(state.getCurrentRound() + 1, state.getPreviewUrl(), Math.max(0, offset), state.round().startFraction(),
+                        roundDurationMs(state) + properties.reveal().toMillis()));
     }
 
     private String fetchPreview(String trackId) {
