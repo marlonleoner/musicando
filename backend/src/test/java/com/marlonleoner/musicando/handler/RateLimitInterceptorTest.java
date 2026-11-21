@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class RateLimitInterceptorTest {
 
     private final RateLimitInterceptor interceptor = new RateLimitInterceptor(new RateLimiter(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)),
-            new RateLimitProperties(2, 3, 20));
+            new RateLimitProperties(2, 3, 20, 2));
 
     private static MockHttpServletRequest request(final String method, final String path, final String ip) {
         final MockHttpServletRequest request = new MockHttpServletRequest(method, path);
@@ -66,6 +66,23 @@ class RateLimitInterceptorTest {
     void shouldNotCountWhenMethodIsNotPost(final String method) throws TooManyRequestsException {
         for (int i = 0; i < 5; i++) {
             assertThat(handle(request(method, "/room", "10.0.0.1"))).isTrue();
+        }
+    }
+
+    @Test
+    void shouldRejectMusicSearchesWhenIpExceedsLimitPerMinute() throws TooManyRequestsException {
+        assertThat(handle(request("GET", "/music/playlists/search", "10.0.0.1"))).isTrue();
+        assertThat(handle(request("GET", "/music/playlists/resolve", "10.0.0.1"))).isTrue();
+
+        assertThatThrownBy(() -> handle(request("GET", "/music/playlists/search", "10.0.0.1"))).isInstanceOf(TooManyRequestsException.class);
+        assertThat(handle(request("GET", "/music/playlists/search", "10.0.0.2"))).isTrue();
+        assertThat(handle(request("POST", "/room", "10.0.0.1"))).isTrue();
+    }
+
+    @Test
+    void shouldNotCountMusicSearchesWhenMethodIsNotGet() throws TooManyRequestsException {
+        for (int i = 0; i < 5; i++) {
+            assertThat(handle(request("OPTIONS", "/music/playlists/search", "10.0.0.1"))).isTrue();
         }
     }
 }

@@ -29,7 +29,8 @@ public class RestConfiguration {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(rateLimitInterceptor)
-                        .addPathPatterns(RateLimitInterceptor.CREATE_ROOM_PATH, RateLimitInterceptor.JOIN_ROOM_PATH);
+                        .addPathPatterns(RateLimitInterceptor.CREATE_ROOM_PATH, RateLimitInterceptor.JOIN_ROOM_PATH,
+                                RateLimitInterceptor.SEARCH_PLAYLISTS_PATH, RateLimitInterceptor.RESOLVE_PLAYLIST_PATH);
             }
         };
     }

@@ -14,12 +14,14 @@ class DeezerClientResponseTest {
     @Test
     void shouldReadSnakeCaseFieldsWhenDeserializingPlaylist() {
         final String json = """
-                {"id":908622995,"title":"Top Brasil","nb_tracks":80,"picture_medium":"cover.jpg","public":true}
+                {"id":908622995,"title":"Top Brasil","nb_tracks":80,"picture_medium":"cover.jpg","public":true,"is_loved_track":false,
+                 "creator":{"id":2037081106,"name":"Marlon","type":"user"}}
                 """;
 
         final DeezerPlaylistClientResponse playlist = mapper.readValue(json, DeezerPlaylistClientResponse.class);
 
-        assertThat(playlist).isEqualTo(new DeezerPlaylistClientResponse(908622995L, "Top Brasil", 80, "cover.jpg", null));
+        assertThat(playlist).isEqualTo(new DeezerPlaylistClientResponse(908622995L, "Top Brasil", 80, "cover.jpg", false,
+                new DeezerUserClientResponse(2037081106L), null));
     }
 
     @Test

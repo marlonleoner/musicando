@@ -8,8 +8,9 @@ more points.
 
 1. Open the TV app and create a room. A room code and a QR code appear on screen.
 2. Players scan the QR code (or open the player app and type the code) and choose a nickname.
-3. The first player to join is the **VIP**: they pick a featured Deezer playlist, the number of rounds and the round
-   duration, then start the game.
+3. The first player to join is the **VIP**: they pick one of the configured Deezer profile's public playlists (or any
+   Deezer playlist, searched by name or pasted as a link), the number of rounds and the round duration, then start the
+   game.
 4. Each round: a 3-second countdown, the song plays on the TV while players answer on their phones, then the answer,
    the fastest players and the scoreboard are revealed.
 5. At the end the TV shows a podium; the VIP can send everyone back to the lobby to play again.
@@ -97,6 +98,8 @@ phones, open the TV app using your computer's network IP (not `localhost`) so th
 | `GAME_COUNTDOWN` / `GAME_REVEAL` / `GAME_FASTEST_LIMIT` | `3s` / `5s` / `5` | Round countdown, reveal duration and number of fastest players shown. |
 | `CLEANUP_ABANDONED_AFTER` / `CLEANUP_CLOSED_RETENTION` / `CLEANUP_INTERVAL` | `30m` / `24h` / `5m` | Rooms without the TV are closed after this time; closed rooms are deleted after the retention. |
 | `RATE_LIMIT_ROOM_CREATIONS` / `RATE_LIMIT_ROOM_JOINS` / `RATE_LIMIT_COMMANDS` | `10` / `20` / `20` | Room creations and join attempts per minute per IP; socket commands per second per player. |
+| `RATE_LIMIT_MUSIC_SEARCHES` | `60` | Playlist searches and resolved links per minute per IP. |
+| `DEEZER_USER_ID` | **required** | Deezer profile whose public playlists are offered to the VIP (the number in `deezer.com/profile/<id>`). The backend does not start without it. |
 | `DEEZER_BASE_URL` | `https://api.deezer.com` | Deezer API. |
 
 ## Docker Compose
@@ -104,7 +107,7 @@ phones, open the TV app using your computer's network IP (not `localhost`) so th
 Runs the backend, Redis and both apps:
 
 ```bash
-cp .env.example .env   # set REDIS_PASSWORD and, to play from phones, PLAYER_APP_URL with your machine's IP
+cp .env.example .env   # set REDIS_PASSWORD, DEEZER_USER_ID and, to play from phones, PLAYER_APP_URL with your machine's IP
 docker compose up --build
 ```
 
