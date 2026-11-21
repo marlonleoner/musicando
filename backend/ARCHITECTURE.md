@@ -433,7 +433,7 @@ Docker com o Compose v2 (`docker compose version`). Não precisa de Java, Node n
    cp .env.example .env
    ```
 
-2. Edite o `.env`. Só estas variáveis importam para o Compose (as de RabbitMQ e o `REDIS_HOST` são ignorados):
+2. Edite o `.env`. Só estas variáveis importam para o Compose (o `REDIS_HOST` é ignorado):
 
    | Variável | Valor | Por quê |
    |---|---|---|
@@ -507,8 +507,3 @@ Docker com o Compose v2 (`docker compose version`). Não precisa de Java, Node n
 - **Checkstyle:** imports em grupos (terceiros, `javax`, `java`, estáticos), ordem de declaração, `HiddenField`, linha
   em branco antes de `if` e `return`, sem linha vazia no começo de bloco, sem `catch (Exception)`.
 
-## 15. Código legado
-
-O pacote de RabbitMQ (`config/RabbitConfiguration`, `service/messaging/RabbitService`, `handler/event/AbstractHandler`,
-`domain/event/Event`) é de uma versão antiga e **não é usado pelo jogo**. As propriedades `spring.rabbitmq.*` têm
-valores padrão só para o backend subir sem RabbitMQ. Pode ser removido numa limpeza futura.
