@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -122,5 +124,48 @@ class RoundGeneratorTest {
 
         assertThat(generated).extracting(GameRound::trackId).containsExactlyInAnyOrder("1", "2", "3", "4", "5");
         assertThat(generated.subList(0, 2)).extracting(GameRound::trackId).containsExactlyInAnyOrder("4", "5");
+    }
+
+    private static List<String> distractorsOf(final GameRound round) {
+        final List<String> distractors = new ArrayList<>(round.options());
+        distractors.remove(round.answer());
+
+        return distractors;
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1, 7, 42, 2024, 99_999})
+    void shouldNeverOfferPreviousAnswerWhenPlaylistHasEnoughTitles(final long seed) throws PlaylistTooSmallException {
+        final List<GameRound> generated = new RoundGenerator(new Random(seed)).generate(tracks(13), 10);
+        final Set<String> previousAnswers = new HashSet<>();
+
+        for (GameRound round : generated) {
+            assertThat(distractorsOf(round)).noneMatch(previousAnswers::contains);
+            previousAnswers.add(round.answer());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1, 7, 42, 2024, 99_999})
+    void shouldNotRepeatWrongOptionsWhenPlaylistHasEnoughTitles(final long seed) throws PlaylistTooSmallException {
+        final List<GameRound> generated = new RoundGenerator(new Random(seed)).generate(tracks(40), 10);
+
+        assertThat(generated).flatExtracting(RoundGeneratorTest::distractorsOf).hasSize(30).doesNotHaveDuplicates();
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1, 7, 42, 2024, 99_999})
+    void shouldOfferPreviousAnswersOnlyAsLastResortWhenPlaylistIsSmall(final long seed) throws PlaylistTooSmallException {
+        final List<GameRound> generated = new RoundGenerator(new Random(seed)).generate(tracks(5), 5);
+        final Set<String> previousAnswers = new HashSet<>();
+
+        for (int index = 0; index < generated.size(); index++) {
+            final GameRound round = generated.get(index);
+            final long reused = distractorsOf(round).stream().filter(previousAnswers::contains).count();
+
+            assertThat(round.options()).hasSize(RoundGenerator.OPTIONS_PER_ROUND).doesNotHaveDuplicates();
+            assertThat(reused).isEqualTo(Math.max(0, index - 1));
+            previousAnswers.add(round.answer());
+        }
     }
 }
