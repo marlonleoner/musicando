@@ -7,5 +7,7 @@ public record DeezerPlaylistClientResponse(
         String title,
         @JsonProperty("nb_tracks") Integer nbTracks,
         @JsonProperty("picture_medium") String pictureMedium,
+        @JsonProperty("is_loved_track") Boolean lovedTrack,
+        DeezerUserClientResponse creator,
         DeezerErrorClientResponse error) {
 }

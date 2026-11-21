@@ -14,8 +14,15 @@ import org.springframework.web.service.annotation.HttpExchange;
 @HttpExchange
 public interface DeezerClient {
 
-    @GetExchange("/chart/0/playlists")
-    DeezerPageClientResponse<DeezerPlaylistClientResponse> chartPlaylists(@RequestParam("limit") int limit);
+    /**
+     * Playlists de um perfil: as que ele criou e as que favoritou, além da de músicas favoritas. Sem autenticação, só as públicas.
+     */
+    @GetExchange("/user/{id}/playlists")
+    DeezerPageClientResponse<DeezerPlaylistClientResponse> userPlaylists(@PathVariable("id") String userId, @RequestParam("index") int index,
+            @RequestParam("limit") int limit);
+
+    @GetExchange("/search/playlist")
+    DeezerPageClientResponse<DeezerPlaylistClientResponse> searchPlaylists(@RequestParam("q") String query, @RequestParam("limit") int limit);
 
     @GetExchange("/playlist/{id}")
     DeezerPlaylistClientResponse playlist(@PathVariable("id") String id);

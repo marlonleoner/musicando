@@ -12,7 +12,20 @@ import java.util.Optional;
  */
 public interface MusicProvider {
 
+    /**
+     * Playlists oferecidas por padrão ao VIP.
+     */
     List<MusicPlaylist> featuredPlaylists() throws MusicProviderException;
+
+    /**
+     * Playlists encontradas pelo nome.
+     */
+    List<MusicPlaylist> searchPlaylists(String query) throws MusicProviderException;
+
+    /**
+     * Playlist apontada por um link do provedor. Aceita o texto de compartilhamento inteiro, desde que contenha o link.
+     */
+    Optional<MusicPlaylist> findPlaylistByLink(String link) throws MusicProviderException;
 
     Optional<MusicPlaylist> findPlaylist(String id) throws MusicProviderException;
 

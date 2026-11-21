@@ -9,7 +9,7 @@ Os caminhos de classe abaixo são relativos a `src/main/java/com/marlonleoner/mu
 
 - Java 25 e Spring Boot 4.1, com Jackson 3 (`tools.jackson`), Lombok e MapStruct.
 - Dois canais com os clientes:
-  - **REST** (`/room`, `/music`): só para criar sala, entrar na sala e listar playlists e opções.
+  - **REST** (`/room`, `/music`): só para criar sala, entrar na sala, listar e buscar playlists e ler as opções.
   - **STOMP sobre WebSocket** (`/ws`): todo o resto, ou seja, comandos dos clientes e eventos do servidor.
 - **O jogo roda no servidor.** Timer, sorteio das rodadas, pontuação e placar são decididos aqui; a TV e os celulares
   só exibem o que recebem e mandam comandos.
@@ -117,7 +117,9 @@ Cada etapa guarda `phaseStartedAt` e `phaseEndsAt` (relógio do servidor). Pausa
 | `POST /room` | Cria a sala e a primeira partida (TV). | `{ id, code, secret }`: credenciais da TV. |
 | `POST /room/join` | Jogador entra: `{ code, nickname }`. | `{ playerId, secret, roomCode }`: credenciais do jogador. |
 | `GET /room` | Lista salas (código, status, TV conectada). | `RoomResponse[]` |
-| `GET /music/playlists/featured` | Playlists em destaque da Deezer para o VIP. | `PlaylistResponse[]` |
+| `GET /music/playlists/featured` | Playlists públicas do perfil configurado (`DEEZER_USER_ID`), oferecidas por padrão ao VIP. | `PlaylistResponse[]` |
+| `GET /music/playlists/search?q=` | Busca playlists da Deezer pelo nome. Busca vazia devolve lista vazia. | `PlaylistResponse[]` |
+| `GET /music/playlists/resolve?url=` | Playlist de um link da Deezer (aceita links curtos e o texto de compartilhamento inteiro). 404 se o link não leva a uma playlist. | `PlaylistResponse` |
 | `GET /music/options` | Opções de rodadas e duração, e os padrões. | `MatchOptionsResponse` |
 
 Erros vêm como `{ status, code, message }` (`ErrorResponse`), em que `code` é um `ErrorCode`. Cada exceção de
@@ -325,12 +327,19 @@ A cada `CLEANUP_INTERVAL` (5 min):
 
 ## 8. Integração com a Deezer
 
-- `DeezerClient` é uma HTTP interface do Spring com 4 chamadas:
-  - playlists em destaque (`/chart/0/playlists`);
+- `DeezerClient` é uma HTTP interface do Spring com 5 chamadas:
+  - playlists de um perfil, paginadas de 100 em 100 (`/user/{id}/playlists`);
+  - busca de playlists pelo nome (`/search/playlist`, até `searchLimit` resultados);
   - uma playlist (`/playlist/{id}`);
   - as músicas da playlist, paginadas de 100 em 100 (`/playlist/{id}/tracks`);
   - uma música (`/track/{id}`, para a prévia atual).
 - `DeezerIntegrator` traduz as respostas para `MusicPlaylist` e `MusicTrack`.
+  - **Playlists do VIP:** só as criadas pelo perfil de `DEEZER_USER_ID`, na ordem da Deezer. Ficam de fora as que ele só
+    favoritou, a de músicas favoritas (`is_loved_track`) e as vazias. A Deezer só devolve as públicas.
+  - **Links:** um link de `deezer.com/.../playlist/{id}` vira o ID direto. Links curtos (`link.deezer.com`,
+    `deezer.page.link`, `dzr.page.link`) são abertos pelo `DeezerLinkClient`, que **não segue redirecionamentos**: o
+    integrador lê o `Location` e só continua se o próximo host também for da Deezer, até 3 saltos. Assim o endpoint não
+    vira um proxy para qualquer URL.
   - Uma música é "tocável" se for legível na Deezer e tiver prévia.
   - O título usa o `title_short`, que vem sem a indicação de versão.
   - Lê no máximo `maxTracks` (300) músicas por playlist.
@@ -366,6 +375,8 @@ CORS.
 | `GAME_COUNTDOWN` / `GAME_REVEAL` / `GAME_FASTEST_LIMIT` | `3s` / `5s` / `5` | Tempos da rodada e "mais rápidos" na revelação. |
 | `CLEANUP_INTERVAL` / `CLEANUP_ABANDONED_AFTER` / `CLEANUP_CLOSED_RETENTION` | `5m` / `30m` / `24h` | Limpeza de salas. |
 | `RATE_LIMIT_ROOM_CREATIONS` / `RATE_LIMIT_ROOM_JOINS` / `RATE_LIMIT_COMMANDS` | `10`/min / `20`/min / `20`/s | Rate limit (por IP na API, por participante no socket). |
+| `RATE_LIMIT_MUSIC_SEARCHES` | `60`/min | Buscas de playlist e links resolvidos, por IP (as duas rotas dividem o mesmo limite). |
+| `DEEZER_USER_ID` | **obrigatório** | Perfil da Deezer cujas playlists públicas aparecem para o VIP (o número em `deezer.com/profile/<id>`). Sem ele, o backend não sobe. |
 | `DEEZER_BASE_URL` | `https://api.deezer.com` | API da Deezer. |
 
 Em prd, `server.forward-headers-strategy=native` faz o rate limit usar o IP real do cliente atrás do Ingress.
@@ -439,6 +450,7 @@ Docker com o Compose v2 (`docker compose version`). Não precisa de Java, Node n
    |---|---|---|
    | `REDIS_PASSWORD` | qualquer senha, ex.: `musicando` | O Redis do Compose sobe com essa senha e o backend usa a mesma. **Obrigatória.** |
    | `REDIS_DATABASE` | `0` | Banco lógico do Redis. |
+   | `DEEZER_USER_ID` | ID do seu perfil, ex.: `2037081106` | Perfil cujas playlists públicas o VIP vê. **Obrigatória.** |
    | `CORS_ALLOWED_ORIGINS` | `http://localhost:8081,http://localhost:8082` | Origens aceitas pelo backend, inclusive no WebSocket. Uma origem fora da lista é recusada. |
    | `PLAYER_APP_URL` | `http://localhost:8082` | Endereço do app do celular que vai no QR code da TV. |
 

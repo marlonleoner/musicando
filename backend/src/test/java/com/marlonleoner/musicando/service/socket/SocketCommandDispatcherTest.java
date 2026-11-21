@@ -46,7 +46,7 @@ class SocketCommandDispatcherTest {
     @BeforeEach
     void setUp() {
         dispatcher = new SocketCommandDispatcher(context, new RateLimiter(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)),
-                new RateLimitProperties(10, 20, COMMANDS_PER_SECOND));
+                new RateLimitProperties(10, 20, COMMANDS_PER_SECOND, 60));
     }
 
     @ParameterizedTest

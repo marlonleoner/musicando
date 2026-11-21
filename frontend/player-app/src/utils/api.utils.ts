@@ -25,6 +25,26 @@ export const getFeaturedPlaylists = async (): Promise<Playlist[]> => {
     return data;
 };
 
+/** Playlists da Deezer encontradas pelo nome. */
+export const searchPlaylists = async (query: string): Promise<Playlist[]> => {
+    const { data } = await api.get<Playlist[]>("/music/playlists/search", {
+        params: { q: query },
+        timeout: MUSIC_TIMEOUT_MS,
+    });
+
+    return data;
+};
+
+/** Playlist apontada por um link da Deezer (inclusive links curtos do app e o texto de compartilhamento inteiro). */
+export const resolvePlaylistLink = async (url: string): Promise<Playlist> => {
+    const { data } = await api.get<Playlist>("/music/playlists/resolve", {
+        params: { url },
+        timeout: MUSIC_TIMEOUT_MS,
+    });
+
+    return data;
+};
+
 export const getMatchOptions = async (): Promise<MatchOptions> => {
     const { data } = await api.get<MatchOptions>("/music/options");
 
