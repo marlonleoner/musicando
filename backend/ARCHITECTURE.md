@@ -41,7 +41,7 @@ Celulares ──────┘     (backend)       ├──> SQLite (salas, jo
 | `service/game/` | O jogo: `GameEngine` (ciclo das rodadas), `GameTimer`, `GameLocks`, `GameStateService` (Redis), `RoundGenerator`, `LobbyService`, `LobbyMusicService`, `GameRecoveryListener`. |
 | `service/room/`, `service/player/`, `service/match/` | Regras e persistência de cada entidade. `RoomCleanupService` fecha e apaga salas antigas. |
 | `service/socket/` | Envio de eventos (`SocketService`), foto da sala (`RoomStateNotifier`), presença (`PresenceService`), autenticação (`SocketAuthenticationService`) e roteamento de comandos (`SocketCommandDispatcher`). |
-| `service/music/` + `integration/` + `client/deezer/` | Músicas: `MusicService` usa a interface `MusicProvider`, implementada por `DeezerIntegrator`, que chama a Deezer pelo `DeezerClient` (HTTP interface do Spring). |
+| `service/music/` + `integration/` + `client/deezer/` | Músicas: `MusicService` usa a interface `MusicProvider`, implementada por `DeezerIntegrator`, que chama a Deezer pelo `DeezerClient` (HTTP interface do Spring) e abre links curtos pelo `DeezerLinkClient`. |
 | `service/cache/` | `RedisService`: `set`/`get`/`invalidate` genéricos no Redis. |
 | `service/ratelimit/` | `RateLimiter`: janela fixa em memória. |
 | `domain/` | Entidades JPA (`Room`, `Player`, `Match`), enums, exceções e os registros do jogo em `domain/music/` (`GameState`, `GameRound`, `MusicTrack`...). |
@@ -57,7 +57,7 @@ Celulares ──────┘     (backend)       ├──> SQLite (salas, jo
 ### SQLite (`src/main/resources/db/migration`)
 
 O schema é criado pelo **Flyway**. O Hibernate só valida (`ddl-auto=validate`), então **toda mudança de tabela precisa
-de uma migration nova** (`V3__...sql`); senão o backend não sobe.
+de uma migration nova** (`V4__...sql`, a próxima); senão o backend não sobe.
 
 | Tabela | Conteúdo principal |
 |---|---|
@@ -182,7 +182,7 @@ Todos vêm no envelope `SocketEvent { type, reason, payload, timestamp }`.
 | `ROUND_STARTED` | `RoundStartedBroadcast`: as 4 opções, o tempo restante, quem já respondeu | A música começou. |
 | `ROUND_AUDIO` | `RoundAudioBroadcast`: prévia, `offsetMs`, `startFraction` e `playMs` (só a TV) | Junto com a contagem, e ao retomar ou reconectar. |
 | `ANSWER_RECEIVED` | `AnswerReceivedBroadcast`: quem respondeu e quantos faltam | Cada resposta (não revela se acertou). |
-| `ROUND_ENDED` | `RoundEndedBroadcast`: resposta, artista, capa, mais rápidos, resultados e placar | Fim da rodada (revelação). |
+| `ROUND_ENDED` | `RoundEndedBroadcast`: resposta, artista, capa, as opções da rodada, mais rápidos, resultados (com a opção que cada jogador marcou) e placar | Fim da rodada (revelação). |
 | `LOBBY_AUDIO` | `LobbyAudioBroadcast`: lista de prévias (só a TV) | Playlist escolhida ou trocada, "jogar novamente", TV reconectando no lobby. |
 | `KICKED` | | O jogador foi expulso. |
 | `ERROR` | `SocketErrorPayload`: código, mensagem, comando | Um comando falhou (fila de erros do participante). |
@@ -506,6 +506,7 @@ Docker com o Compose v2 (`docker compose version`). Não precisa de Java, Node n
 
 | Sintoma | Causa provável |
 |---|---|
+| O backend não sobe e o log cita `DEEZER_USER_ID` | Falta o `DEEZER_USER_ID` no `.env`. |
 | A TV fica em "Conectando à sala…" | Origem fora de `CORS_ALLOWED_ORIGINS`, por exemplo a TV aberta pelo IP sem o IP na lista. |
 | O backend reinicia em loop com erro de Redis | `REDIS_PASSWORD` vazio ou diferente entre os containers. Ajuste o `.env` e rode `docker compose up -d --force-recreate`. |
 | O backend não consegue gravar o SQLite (Linux) | A pasta `./database` foi criada pelo Docker como `root`, mas o backend roda com o usuário 10001. Rode `sudo chown 10001:10001 database`. No Windows e no macOS isso não acontece. |
@@ -514,7 +515,7 @@ Docker com o Compose v2 (`docker compose version`). Não precisa de Java, Node n
 
 ## 14. Rodar, testar e qualidade
 
-- **Desenvolvimento:** suba um Redis e rode `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`. O SQLite é criado
+- **Desenvolvimento:** suba um Redis, defina `DEEZER_USER_ID` e rode `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`. O SQLite é criado
   em `musicando.db`, na pasta do backend.
 - **Ambiente completo:** veja a seção 13.
 - **Verificação completa:** `./mvnw verify` roda testes, Checkstyle e SpotBugs/FindSecBugs. É o mesmo que o CI roda,

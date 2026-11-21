@@ -1,66 +1,38 @@
-# 🎯 Roadmap: Host App (Web - Musicando)
+# host-app
 
-## 🧱 Fase 1 – Setup e Fundamentos
+App da TV do Musicando: cria a sala, mostra o lobby com o QR code e toca as músicas da partida.
 
-- [x] Criar projeto com Vite + React + TypeScript
-- [x] Configurar Tailwind CSS
-- [x] Estruturar pastas: `pages/`, `components/`, `hooks/`, `services/`, `types/`
-- [x] Configurar ESLint e Prettier com regras de padronização
+```bash
+pnpm install      # na pasta frontend
+pnpm dev          # http://<ip-da-máquina>:5173
+```
 
----
+Abra pelo IP da máquina (não `localhost`) para o QR code apontar para um endereço que o celular alcance.
 
-## 🎮 Fase 2 – Fluxo de Criação e Gerenciamento da Sala
+## Telas
 
-- [ ] Tela inicial para criação da sala:
-    - [ ] Formulário com: nome do host + seleção da playlist + número de músicas + tempo por música
-    - [ ] Botão “Criar sala” que realiza requisição para o backend via REST (`/rooms`)
-    - [ ] Exibir código da sala gerado
-- [ ] Armazenar informações da sala e jogador (host) no estado global (`useContext` ou `zustand`)
-- [ ] Conectar ao WebSocket após a criação da sala
+| Tela | O que mostra |
+|---|---|
+| `Home` | Botão de criar sala. |
+| `Lobby` | Código da sala, QR code, jogadores com os personagens, resumo da configuração do VIP e música de fundo da playlist escolhida. |
+| `Game` | Jumbotron com a barra de tempo, indicador de rodadas, timer redondo, placar no rodapé (com animação de reordenação e "+pontos") e, na revelação, capa, resposta, opções com quem marcou cada uma e os mais rápidos. |
+| `FinalRanking` | Pódio dos 5 melhores, demais jogadores e confete. |
+| `StatusScreen` | Avisos de estado: conectando, partida pausada, sala aberta em outra tela. |
 
----
+## Áudio
 
-## 🧑‍🤝‍🧑 Fase 3 – Lobby da Sala
+- A TV é a única que recebe as prévias (30 s, da Deezer). Cada rodada começa num ponto sorteado pelo backend, com um
+  fade in curto, e a música continua na revelação até o fade out (`useRoundAudio`).
+- No lobby, toca trechos de músicas da playlist escolhida (`useLobbyAudio`).
+- O volume é controlado pelo botão no canto inferior esquerdo e vale para músicas e efeitos sonoros.
+- O navegador bloqueia som antes do primeiro clique na página; nesse caso a TV mostra um aviso para liberar o áudio.
 
-- [ ] Exibir lista de jogadores conectados
-- [ ] Atualizar a lista em tempo real via socket (`/topic/room.{roomCode}`)
-- [ ] Permitir que o host reinicie ou encerre a sala
-- [ ] Exibir status da sala: aguardando jogadores / em andamento / finalizada
+## Variáveis (`.env`)
 
----
+| Variável | Para quê |
+|---|---|
+| `VITE_API_BASE_URL` | URL do backend. Sem valor, usa o endereço da página na porta 8080. Um caminho relativo (ex.: `/api`) indica backend na mesma origem. |
+| `VITE_PLAYER_APP_URL` | URL do app do celular usada no QR code. Sem valor, usa o endereço da página na porta 5174. |
 
-## 🎵 Fase 4 – Início do Jogo
-
-- [ ] Botão “Iniciar Jogo” (ativa a entidade `Game` no backend)
-- [ ] Iniciar envio de músicas de forma sincronizada para todos os players via socket
-- [ ] Controlar cronômetro da rodada
-- [ ] Exibir feedback visual de quem respondeu corretamente (em tempo real)
-
----
-
-## 🏆 Fase 5 – Finalização e Feedback
-
-- [ ] Exibir ranking final dos jogadores
-- [ ] Botão “Reiniciar partida” (mantém jogadores, reseta game)
-- [ ] Botão “Nova sala”
-
----
-
-## 💡 Fase 6 – Extras e Melhorias
-
-- [ ] Implementar loading states e tratamento de erros
-- [ ] Melhorar usabilidade e responsividade (mobile/tablet)
-- [ ] Tela de confirmação antes de sair da sala
-- [ ] Aviso sonoro para início de rodada
-- [ ] Componentes animados com Framer Motion (ex: entrada dos jogadores, resultados)
-
----
-
-## 🛠️ Fase 7 – Integração com Back-End
-
-- [ ] Endpoints REST: criação de sala, conexão do host, envio das configs
-- [ ] Conexão WebSocket via STOMP:
-    - [ ] `connect` com headers
-    - [ ] `subscribe` aos tópicos da sala
-    - [ ] `send` de mensagens como iniciar jogo, pular música, etc.
-- [ ] Gerenciar reconexão do host automaticamente (em caso de refresh/desconexão)
+As telas são feitas para TVs, que costumam informar uma área pequena ao navegador (cerca de 960×540): tudo usa
+`h-dvh` e tamanhos em `vh`/`clamp()` para caber sem rolagem.

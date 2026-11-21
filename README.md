@@ -9,14 +9,16 @@ more points.
 1. Open the TV app and create a room. A room code and a QR code appear on screen.
 2. Players scan the QR code (or open the player app and type the code) and choose a nickname.
 3. The first player to join is the **VIP**: they pick one of the configured Deezer profile's public playlists (or any
-   Deezer playlist, searched by name or pasted as a link), the number of rounds and the round duration, then start the
-   game.
-4. Each round: a 3-second countdown, the song plays on the TV while players answer on their phones, then the answer,
-   the fastest players and the scoreboard are revealed.
+   Deezer playlist, searched by name or pasted as a link), the number of rounds (5, 10, 15 or 20) and the round
+   duration (10, 15 or 20 s), then start the game.
+4. Each round: a 3-second countdown, then the song plays on the TV – starting at a random point of the preview – while
+   players answer on their phones. The reveal shows the answer, which option each player picked, the fastest players
+   and the scoreboard.
 5. At the end the TV shows a podium; the VIP can send everyone back to the lobby to play again.
 
 Scoring: a correct answer is worth 500 to 1000 points depending on how much time was left; wrong or missing answers are
-worth 0. A round ends early once every connected player has answered. If the TV disconnects (or the backend restarts),
+worth 0. The wrong options of a round are never the answer of a previous round, and they are spread across the
+playlist so the same titles don't keep coming back. A round ends early once every connected player has answered. If the TV disconnects (or the backend restarts),
 the game pauses and resumes where it stopped.
 
 ## Architecture
@@ -39,9 +41,9 @@ the game pauses and resumes where it stopped.
 | Folder | Description |
 |---|---|
 | `backend/` | Java 25 + Spring Boot 4.1. REST API (`/room`, `/music`) and STOMP over WebSocket (`/ws`). The game loop (timer, rounds, scoring) runs on the server. |
-| `frontend/host-app/` | TV app: lobby with QR code, game screens, audio playback, final ranking. React 19 + Vite + Tailwind. |
-| `frontend/player-app/` | Phone app: join, VIP game settings, answer buttons, results. React 19 + Vite + Tailwind. |
-| `deploy/` | Kubernetes manifests (Kustomize) applied by Argo CD. |
+| `frontend/host-app/` | TV app: lobby with QR code and background music, game screens, audio playback, final ranking. React 19 + Vite + Tailwind. |
+| `frontend/player-app/` | Phone app: join, character picker, VIP game settings (with playlist search), answer buttons, results. React 19 + Vite + Tailwind. |
+| `tools/avatars/` | Script that renders the player characters from the Kenney 3D models. |
 | `.github/workflows/` | CI: tests, lint, images and deploy tag updates. |
 
 The backend is designed to run as a **single instance**: the round timer, the per-room locks and the rate limiter live
@@ -55,7 +57,7 @@ Requirements: Java 25, Node.js 22 with pnpm, and a Redis server.
 
 ```bash
 cd backend
-# Set the environment variables below (e.g. in your IDE run configuration), then:
+# Set the environment variables below (e.g. in your IDE run configuration; DEEZER_USER_ID is required), then:
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
