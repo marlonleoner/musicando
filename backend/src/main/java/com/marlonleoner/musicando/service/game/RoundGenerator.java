@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +20,9 @@ import java.util.random.RandomGenerator;
 
 /**
  * Sorteia as rodadas de uma partida a partir das músicas da playlist. Cada rodada tem 1 título correto e 3 títulos
- * errados da mesma playlist, todos normalizados e distintos, em ordem aleatória.
+ * errados da mesma playlist, todos normalizados e distintos, em ordem aleatória. As erradas nunca são respostas de rodadas
+ * anteriores (o que entregaria que não são a certa) e se espalham pela playlist, para não repetir as mesmas opções a
+ * partida toda.
  */
 @Component
 @RequiredArgsConstructor
@@ -63,12 +67,15 @@ public class RoundGenerator {
         answers.sort(Comparator.comparing(title -> avoidedTrackIds.contains(byTitle.get(title).id())));
 
         final List<GameRound> generated = new ArrayList<>(rounds);
-        for (String answer : answers.subList(0, rounds)) {
-            final List<String> distractors = new ArrayList<>(titles);
-            distractors.remove(answer);
-            Collections.shuffle(distractors, random);
+        final Set<String> pastAnswers = new HashSet<>();
+        final Map<String, Integer> timesShown = new HashMap<>();
 
-            final List<String> options = new ArrayList<>(distractors.subList(0, OPTIONS_PER_ROUND - 1));
+        for (String answer : answers.subList(0, rounds)) {
+            final List<String> distractors = pickDistractors(titles, answer, pastAnswers, timesShown);
+            distractors.forEach(title -> timesShown.merge(title, 1, Integer::sum));
+            pastAnswers.add(answer);
+
+            final List<String> options = new ArrayList<>(distractors);
             options.add(answer);
             Collections.shuffle(options, random);
 
@@ -77,5 +84,20 @@ public class RoundGenerator {
         }
 
         return generated;
+    }
+
+    /**
+     * Opções erradas de uma rodada: primeiro as músicas que ainda não foram resposta, das que apareceram menos vezes como
+     * opção para as que apareceram mais, com os empates sorteados. Respostas de rodadas anteriores só entram quando a
+     * playlist não tem outras músicas suficientes.
+     */
+    private List<String> pickDistractors(List<String> titles, String answer, Set<String> pastAnswers, Map<String, Integer> timesShown) {
+        final List<String> candidates = new ArrayList<>(titles);
+        candidates.remove(answer);
+        Collections.shuffle(candidates, random);
+        candidates.sort(Comparator.comparing((String title) -> pastAnswers.contains(title))
+                .thenComparing(title -> timesShown.getOrDefault(title, 0)));
+
+        return new ArrayList<>(candidates.subList(0, OPTIONS_PER_ROUND - 1));
     }
 }
